@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探索你的依附風格｜心理測驗</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(190, 180, 210, 0.25), 0 8px 10px -6px rgba(190, 180, 210, 0.1);
+        }
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-700 flex flex-col justify-between p-4 sm:p-6">
+
+    <!-- Header Section -->
+    <header class="max-w-2xl mx-auto w-full text-center my-6">
+        <div class="inline-block p-3 rounded-full bg-rose-100 text-rose-400 mb-3 shadow-inner">
+            <i class="fa-solid fa-heart text-2xl"></i>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-wide">探索你的依附關係風格</h1>
+        <p class="text-sm sm:text-base text-slate-500 mt-2">給自己幾分鐘的時間，傾聽內心深處最真實的聲音。</p>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-2xl mx-auto w-full flex-grow flex flex-col justify-center">
+
+        <!-- Intro Card -->
+        <div id="intro-card" class="bg-white rounded-3xl p-6 sm:p-10 card-shadow text-center border border-rose-100">
+            <h2 class="text-xl font-bold text-slate-700 mb-4">歡迎來到這段內心旅程</h2>
+            <p class="text-slate-600 leading-relaxed mb-6 text-sm sm:text-base">
+                在親密關係中，我們每個人都有獨特的安心與不安方式。<br class="hidden sm:inline">
+                本測驗共有 <strong>10 道題目</strong>，請依據你近期的真實感受與直覺選擇最符合的程度（1分代表非常不符合，5分代表非常符合）。
+            </p>
+            <div class="bg-amber-50/60 rounded-2xl p-4 mb-8 text-xs sm:text-sm text-amber-800 border border-amber-100 text-left">
+                <i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>
+                測驗沒有好壞對錯之分，每一種風格都是你在成長過程中保護自己的珍貴方式。
+            </div>
+            <button onclick="startQuiz()" class="w-full sm:w-auto px-8 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-medium rounded-full shadow-lg shadow-rose-200 transition duration-300 text-base">
+                開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+
+        <!-- Quiz Card (Hidden by default) -->
+        <div id="quiz-card" class="hidden bg-white rounded-3xl p-6 sm:p-8 card-shadow border border-rose-100">
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between text-xs font-semibold text-slate-400 mb-2">
+                    <span id="question-number">題目 1 / 10</span>
+                    <span id="progress-percent">10%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div id="progress-bar" class="bg-rose-300 h-2.5 rounded-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <!-- Question Text -->
+            <div class="min-h-[100px] flex items-center justify-center my-4">
+                <h3 id="question-text" class="text-lg sm:text-xl font-bold text-slate-800 text-center leading-relaxed">
+                    載入中...
+                </h3>
+            </div>
+
+            <!-- Rating scale indicators -->
+            <div class="flex justify-between text-xs text-slate-400 px-2 mb-3">
+                <span>1 非常不符合</span>
+                <span>5 非常符合</span>
+            </div>
+
+            <!-- Options (1 to 5 Buttons) -->
+            <div class="grid grid-cols-5 gap-2 sm:gap-4 mb-6">
+                <button onclick="selectOption(1)" id="opt-1" class="option-btn py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-lg flex flex-col items-center gap-1 focus:outline-none">
+                    <span>1</span>
+                </button>
+                <button onclick="selectOption(2)" id="opt-2" class="option-btn py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-lg flex flex-col items-center gap-1 focus:outline-none">
+                    <span>2</span>
+                </button>
+                <button onclick="selectOption(3)" id="opt-3" class="option-btn py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-lg flex flex-col items-center gap-1 focus:outline-none">
+                    <span>3</span>
+                </button>
+                <button onclick="selectOption(4)" id="opt-4" class="option-btn py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-lg flex flex-col items-center gap-1 focus:outline-none">
+                    <span>4</span>
+                </button>
+                <button onclick="selectOption(5)" id="opt-5" class="option-btn py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-lg flex flex-col items-center gap-1 focus:outline-none">
+                    <span>5</span>
+                </button>
+            </div>
+
+            <!-- Navigation Buttons (Prev / Next) -->
+            <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <button id="prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 disabled:opacity-0 transition font-medium text-sm flex items-center">
+                    <i class="fa-solid fa-chevron-left mr-1.5"></i> 上一題
+                </button>
+                
+                <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 bg-rose-400 hover:bg-rose-500 text-white font-medium rounded-full shadow-md shadow-rose-200 transition text-sm flex items-center">
+                    <span id="next-btn-text">下一題</span> <i class="fa-solid fa-chevron-right ml-1.5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Card (Hidden by default) -->
+        <div id="result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100 text-center">
+            <div id="result-icon-bg" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 text-3xl">
+                <!-- Dynamic Icon -->
+            </div>
+
+            <p class="text-xs sm:text-sm font-semibold tracking-widest text-slate-400 uppercase mb-1">測驗結果分析</p>
+            <h2 id="result-type" class="text-2xl sm:text-3xl font-bold mb-2">
+                <!-- Result Type Name -->
+            </h2>
+            <div class="inline-block bg-slate-100 rounded-full px-4 py-1 text-sm text-slate-600 font-medium mb-6">
+                總得分：<span id="result-score" class="text-rose-500 font-bold text-base">0</span> 分 / 50 分
+            </div>
+
+            <!-- Warm Analysis Box -->
+            <div class="bg-rose-50/50 rounded-2xl p-5 text-left border border-rose-100 mb-6 space-y-3 text-slate-600 text-sm sm:text-base leading-relaxed">
+                <p id="result-desc"></p>
+                <div class="border-t border-rose-100 pt-3">
+                    <span class="font-bold text-rose-500 block mb-1">🌱 給你的溫馨建議：</span>
+                    <p id="result-advice" class="text-slate-600"></p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="restartQuiz()" class="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-full transition text-sm">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> 重新測驗
+                </button>
+                <button onclick="copyResult()" class="w-full sm:w-auto px-6 py-3 bg-rose-400 hover:bg-rose-500 text-white font-medium rounded-full shadow-md shadow-rose-200 transition text-sm">
+                    <i class="fa-solid fa-share-nodes mr-1"></i> 分享測驗結果
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-slate-400 my-4">
+        <p>溫馨提示：本測驗結果僅供自我探索參考，並非專業臨床診斷。</p>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        const questions = [
+            "我常常擔心夥伴/重要他人並不真的愛我或會離開我。",
+            "當我想要和對方親密時，我很怕對方會把我推開。",
+            "我很渴望與人建立極度親密的關係，但這有時會嚇跑別人。",
+            "當對方不像我期待的那樣關心我時，我會感到非常沮喪與焦慮。",
+            "我常覺得自己需要不斷確認對方是否還在意我。",
+            "我覺得要完全信任對方是一件很困難的事。",
+            "當有人跟我過度親密時，我會感到不太舒服或有壓力。",
+            "我習慣獨立解決問題，極度不喜歡依賴別人。",
+            "當我遇到困難或情緒低落時，我不習慣主動向對方尋求安慰。",
+            "我傾向於和對方保持安全距離，不喜歡太赤裸地表達內心想法。"
+        ];
+
+        const resultsData = {
+            secure: {
+                type: "安全型依附 (Secure Attachment)",
+                colorClass: "bg-emerald-100 text-emerald-500",
+                icon: "fa-solid fa-seedling",
+                desc: "在關係中，你展現出高度的安全感與成熟。你能夠坦然表達自己的情感與需要，同時也能給予伴侶足夠的空間與支持。你不害怕展現脆弱，也能建立健康、穩固且有溫度的連結。",
+                advice: "保持你溫暖而開放的心態！繼續運用你的同理心與溝通能力，建立彼此滋養的健康關係。"
+            },
+            anxious: {
+                type: "焦慮型依附 (Anxious Attachment)",
+                colorClass: "bg-amber-100 text-amber-500",
+                icon: "fa-solid fa-heart-crack",
+                desc: "你對於感情非常投入且心思細膩，但內心深處常伴隨著對失去與被拋棄的焦慮。你渴望高度的親密感，有時會因為對方反應冷淡而感到不安，並試圖透過不斷確認來獲取安全感。",
+                advice: "學習把關懷的焦點帶回自己身上。練習肯定自己的價值，告訴自己：『即使對方沒有即時回應，我依然值得被愛且非常安全。』"
+            },
+            avoidant: {
+                type: "逃避型依附 (Avoidant Attachment)",
+                colorClass: "bg-sky-100 text-sky-500",
+                icon: "fa-solid fa-shield-halved",
+                desc: "你非常習慣獨立自強，習慣將情緒消化在自己的小天地裡。當關係變得過度親密或對方有所依賴時，你可能會不自主地想拉開距離，因為保持空間讓你感到最安全、最自在。",
+                advice: "獨立是你的優勢，但親密不一定代表失去自由。試著跨出小小的一步，向信任的人表達一點點真實的感受，體驗被接納的溫暖。"
+            },
+            fearful: {
+                type: "混亂 / 恐懼型依附 (Fearful-Avoidant)",
+                colorClass: "bg-purple-100 text-purple-500",
+                icon: "fa-solid fa-cloud-rain",
+                desc: "你的內心就像一場矛盾的拉扯：你極度渴望溫暖與親密，卻又深怕靠近後會受到傷害。這讓你容易在關係中忽冷忽熱，想要靠近卻又忍不住推開對方，內心承受著不少壓力和孤單。",
+                advice: "對自己多一點溫柔與耐心。理解自己的矛盾來自於對傷害的防衛機制，給自己時間，嘗試建立小步慢跑、有界限但安全的漸進式親密。"
+            }
+        };
+
+        let currentQuestion = 0;
+        let answers = new Array(questions.length).fill(null);
+
+        function startQuiz() {
+            document.getElementById('intro-card').classList.add('hidden');
+            document.getElementById('quiz-card').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const qText = document.getElementById('question-text');
+            const qNum = document.getElementById('question-number');
+            const pBar = document.getElementById('progress-bar');
+            const pPercent = document.getElementById('progress-percent');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtnText = document.getElementById('next-btn-text');
+
+            // 渲染當前題目
+            qText.innerText = `${currentQuestion + 1}. ${questions[currentQuestion]}`;
+            qNum.innerText = `題目 ${currentQuestion + 1} / ${questions.length}`;
+
+            // 更新進度條
+            const percent = ((currentQuestion + 1) / questions.length) * 100;
+            pBar.style.width = `${percent}%`;
+            pPercent.innerText = `${Math.round(percent)}%`;
+
+            // 第一題時隱藏上一題按鈕
+            if (currentQuestion === 0) {
+                prevBtn.classList.add('opacity-0', 'pointer-events-none');
+            } else {
+                prevBtn.classList.remove('opacity-0', 'pointer-events-none');
+            }
+
+            // 最後一題修改按鈕文字
+            if (currentQuestion === questions.length - 1) {
+                nextBtnText.innerText = "查看結果";
+            } else {
+                nextBtnText.innerText = "下一題";
+            }
+
+            // 更新選項選取狀態樣式
+            updateOptionStyles();
+        }
+
+        function selectOption(score) {
+            // 紀錄分數
+            answers[currentQuestion] = score;
+            // 更新選項選取狀態樣式
+            updateOptionStyles();
+        }
+
+        function updateOptionStyles() {
+            const selectedScore = answers[currentQuestion];
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`opt-${i}`);
+                if (selectedScore === i) {
+                    btn.className = "option-btn py-4 rounded-2xl border-2 border-rose-400 bg-rose-200 text-rose-800 font-bold text-lg flex flex-col items-center gap-1 focus:outline-none shadow-sm";
+                } else {
+                    btn.className = "option-btn py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-lg flex flex-col items-center gap-1 focus:outline-none";
+                }
+            }
+        }
+
+        function nextQuestion() {
+            // 檢查是否已選擇該題分數
+            if (answers[currentQuestion] === null) {
+                showToast("請先選擇一個符合程度的分數唷！");
+                return;
+            }
+
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                calculateResult();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function calculateResult() {
+            const totalScore = answers.reduce((sum, current) => sum + current, 0);
+
+            let dataKey = "secure";
+            if (totalScore >= 10 && totalScore <= 20) {
+                dataKey = "secure";
+            } else if (totalScore >= 21 && totalScore <= 30) {
+                dataKey = "anxious";
+            } else if (totalScore >= 31 && totalScore <= 40) {
+                dataKey = "avoidant";
+            } else if (totalScore >= 41 && totalScore <= 50) {
+                dataKey = "fearful";
+            }
+
+            const res = resultsData[dataKey];
+
+            // 渲染結果畫面
+            document.getElementById('result-score').innerText = totalScore;
+            document.getElementById('result-type').innerText = res.type;
+            document.getElementById('result-desc').innerText = res.desc;
+            document.getElementById('result-advice').innerText = res.advice;
+
+            const iconContainer = document.getElementById('result-icon-bg');
+            iconContainer.className = `w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 text-3xl ${res.colorClass}`;
+            iconContainer.innerHTML = `<i class="${res.icon}"></i>`;
+
+            // 切換視圖
+            document.getElementById('quiz-card').classList.add('hidden');
+            document.getElementById('result-card').classList.remove('hidden');
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            answers = new Array(questions.length).fill(null);
+            document.getElementById('result-card').classList.add('hidden');
+            document.getElementById('intro-card').classList.remove('hidden');
+        }
+
+        function copyResult() {
+            const score = document.getElementById('result-score').innerText;
+            const type = document.getElementById('result-type').innerText;
+            const textToCopy = `我在【依附關係風格測驗】中獲得了 ${score} 分，屬於「${type}」！快來測測看你的依附風格吧！`;
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast("結果已複製到剪貼簿囉！");
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white px-5 py-2.5 rounded-full text-sm shadow-lg transition-opacity duration-300 z-50';
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
+
