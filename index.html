@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>探索你的依附風格｜精準心理測驗與雷達圖分析</title>
+    <title>同儕關係的心理密碼：焦慮型依附之分析與探討</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -15,10 +15,9 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Config Setup
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'attachment-survey-app';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDummyKeyForFallbackOnly",
@@ -32,6 +31,13 @@
         const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
+        const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        if (initialToken) {
+            signInWithCustomToken(auth, initialToken).catch(() => signInAnonymously(auth));
+        } else {
+            signInAnonymously(auth).catch((e) => console.log("Anon auth initialized", e));
+        }
+
         window.firebaseAuth = auth;
         window.firebaseDb = db;
         window.googleProvider = googleProvider;
@@ -41,6 +47,9 @@
         window.doc = doc;
         window.getDoc = getDoc;
         window.setDoc = setDoc;
+        window.deleteDoc = deleteDoc;
+        window.collection = collection;
+        window.getDocs = getDocs;
     </script>
 
     <style>
@@ -57,97 +66,95 @@
         .option-btn:hover {
             transform: translateY(-2px);
         }
-        .badge-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .7; }
-        }
     </style>
 </head>
 <body class="min-h-screen text-slate-700 flex flex-col justify-between p-4 sm:p-6">
 
-    <!-- Header Section -->
     <header class="max-w-3xl mx-auto w-full text-center mt-4 mb-6">
         <div class="inline-flex items-center justify-center p-3 rounded-full bg-rose-100 text-rose-500 mb-3 shadow-inner">
             <i class="fa-solid fa-heart-pulse text-2xl"></i>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-wide">探索你的親密依附風格</h1>
-        <p class="text-xs sm:text-sm text-slate-500 mt-2">透過 16 道精準維度測驗，解析你在親密關係中的安全感與內心需求</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-wide">同儕關係的心理密碼：焦慮型依附之分析與探討</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-2">明道中學應用英語科專題製作團隊｜學術專題研究問卷</p>
     </header>
 
-    <!-- Main Content Container -->
     <main class="max-w-3xl mx-auto w-full flex-grow flex flex-col justify-center">
 
         <!-- Intro Card -->
         <div id="intro-card" class="bg-white rounded-3xl p-6 sm:p-10 card-shadow text-center border border-rose-100">
-            <div class="inline-block bg-rose-50 text-rose-500 font-semibold text-xs px-3 py-1 rounded-full mb-4">
-                專題研究專用問卷
-            </div>
-            <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-3">歡迎參與專題依附風格研究問卷</h2>
-            <p class="text-slate-600 leading-relaxed mb-6 text-sm sm:text-base max-w-xl mx-auto">
-                本問卷分為兩階段，協助我們探討親密關係與同儕社交模式。<br class="hidden sm:inline">
-                <span class="text-xs text-rose-500 font-bold bg-rose-50 px-2.5 py-1 rounded-md inline-block mt-2">
-                    <i class="fa-solid fa-lock mr-1"></i>為避免重複填寫，需登入 Google 帳號。數據嚴格僅供專題報告撰寫，絕不對外公開。
-                </span>
-            </p>
-
-            <!-- Google Auth Status Box -->
-            <div id="auth-status-box" class="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6 max-w-md mx-auto">
-                <div id="auth-loading" class="text-xs text-slate-400 py-2">
-                    <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> 正在檢查登入狀態...
-                </div>
-
-                <div id="logged-out-view" class="hidden flex flex-col items-center gap-3">
-                    <p class="text-xs text-slate-500 font-medium">請登入 Google 帳號或選擇訪客模式進行測驗</p>
-                    <div class="flex flex-col sm:flex-row gap-2 w-full justify-center">
-                        <button onclick="handleGoogleLogin()" class="w-full sm:w-auto px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-full shadow-sm transition text-xs sm:text-sm flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-                            Google 帳號登入
-                        </button>
-                        <button onclick="enableGuestMode()" class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-full transition text-xs sm:text-sm flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-user-gear text-slate-400"></i> 免登入訪客模式
-                        </button>
-                    </div>
-                </div>
-
-                <div id="logged-in-view" class="hidden flex items-center justify-between">
+            <!-- Top Identity Status & Login Bar -->
+            <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                <!-- Logged Out View -->
+                <div id="logged-out-view" class="flex flex-col sm:flex-row items-center justify-between w-full gap-3">
                     <div class="flex items-center gap-3">
-                        <img id="user-avatar" src="" class="w-9 h-9 rounded-full border border-rose-200">
-                        <div class="text-left">
-                            <span id="user-name" class="block font-bold text-slate-800 text-xs sm:text-sm">--</span>
-                            <span id="user-status-tag" class="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
-                                <i class="fa-solid fa-circle-check"></i> 身份已驗證 (可填寫)
-                            </span>
+                        <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shrink-0 text-lg shadow-inner">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm">請先完成身分驗證</div>
+                            <div class="text-xs text-slate-500">專題學術調查防重複填寫機制：填寫前須驗證身份</div>
                         </div>
                     </div>
-                    <button onclick="handleSignOut()" class="text-xs text-slate-400 hover:text-rose-500 underline">
-                        退出
+                    <button onclick="handleGoogleLogin()" class="w-full sm:w-auto px-5 py-2.5 bg-white border border-slate-200 hover:border-rose-400 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition text-xs flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                        Google / 信箱驗證登入
                     </button>
+                </div>
+
+                <!-- Logged In View -->
+                <div id="logged-in-view" class="hidden flex flex-col sm:flex-row items-center justify-between w-full gap-3">
+                    <div class="flex items-center gap-3">
+                        <img id="user-avatar" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-rose-300 object-cover shadow-sm">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span id="user-name" class="font-bold text-slate-800 text-sm">使用者</span>
+                                <span id="user-status-tag" class="text-[11px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md font-semibold border border-emerald-100 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-check"></i> 已完成驗證
+                                </span>
+                            </div>
+                            <div class="text-xs text-slate-400">已啟用防重複提交護欄</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="admin-dashboard-btn" onclick="openAdminDashboard()" class="hidden text-xs text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-chart-line"></i> 後台看板
+                        </button>
+                        <button onclick="handleSignOut()" class="text-xs text-slate-500 hover:text-rose-500 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:border-rose-200 bg-white transition cursor-pointer">
+                            <i class="fa-solid fa-right-from-bracket mr-1"></i> 切換帳號
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Domain Warning Box (Hidden by default) -->
-            <div id="domain-warning-box" class="hidden bg-sky-50 border border-sky-200 p-3.5 rounded-2xl mb-6 text-sky-900 text-xs text-left leading-relaxed">
-                <i class="fa-solid fa-circle-info text-sky-500 mr-1"></i>
-                <strong>系統提醒：</strong> 由於預覽視窗網址尚未新增至 Firebase OAuth 白名單（<code>auth/unauthorized-domain</code>），已為您自動開啟<strong>訪客體驗模式</strong>，您可以正常填寫測驗與觀看雷達圖！
+            <!-- Warning Box when user has ALREADY submitted -->
+            <div id="already-completed-box" class="hidden mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs sm:text-sm text-amber-900 flex items-start gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl mt-0.5 shrink-0"></i>
+                <div>
+                    <div class="font-bold text-amber-950 mb-0.5">您已完成過本專題問卷</div>
+                    <p class="leading-relaxed text-amber-800">為確保研究數據之公平性與學術品質，每人僅限填寫一次。系統已登記您的問卷結果，感謝您的協助！</p>
+                </div>
             </div>
 
-            <!-- Already Completed Notice Box -->
-            <div id="already-completed-box" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-2xl mb-6 text-amber-900 text-xs sm:text-sm">
-                <i class="fa-solid fa-circle-exclamation text-amber-500 text-base mb-1 block"></i>
-                系統偵測到您的 Google 帳號已經完成過本專題問卷！再次感謝您的支持與協助。
+            <div class="inline-block bg-rose-50 text-rose-500 font-semibold text-xs px-3 py-1 rounded-full mb-3">
+                明道中學應用英語科 專題製作團隊
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-4">同儕關係的心理密碼：焦慮型依附之分析與探討</h2>
+            
+            <div class="text-slate-600 leading-relaxed mb-8 text-xs sm:text-sm max-w-xl mx-auto space-y-3 text-left bg-slate-50/90 p-5 rounded-2xl border border-slate-100/80 shadow-inner">
+                <p class="font-bold text-slate-800 text-sm">各位同學好，</p>
+                <p>日常中我們常會遇到困境，然而有些人選擇迴避或把它視為一切焦慮來源，這些因素甚至影響到了同儕關係。如今面臨這樣的遭遇的青少年，愈來愈多。不知道正在填表單的你們是否也遇到過相同的情況呢?</p>
+                <p>我們是明道中學應用英語科的專題製作團隊，我們希望透過這份問卷，能夠探討類似的案例。並分析同儕關係的心理密碼到底怎麼解決。</p>
+                <p>本問卷包含兩個階段，問卷中包含日常以及心理感受，本問卷依完全匿名的形式，統計結果均以圖表呈現，絕不公開隱私訊息，請放心填寫，填答時間約3-5分鐘。</p>
+                <p class="font-bold text-rose-500 pt-1">由衷感謝幫忙填寫問卷的同學，每份回覆都對我們至關重要!</p>
             </div>
 
-            <button id="start-btn" onclick="startQuiz()" disabled class="w-full sm:w-auto px-10 py-3.5 bg-slate-300 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-not-allowed">
-                請先登入 Google 帳號 <i class="fa-solid fa-lock ml-2"></i>
+            <button id="start-btn" onclick="startQuiz()" class="w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer">
+                開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>
             </button>
         </div>
 
-        <!-- Quiz Card (Hidden by default) -->
+        <!-- Quiz Card Stage 1 -->
         <div id="quiz-card" class="hidden bg-white rounded-3xl p-6 sm:p-8 card-shadow border border-rose-100">
-            <!-- Progress Bar & Category Badge -->
             <div class="mb-6">
                 <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
                     <span id="dimension-badge" class="bg-rose-50 text-rose-500 px-2.5 py-1 rounded-full font-bold">
@@ -163,21 +170,18 @@
                 </div>
             </div>
 
-            <!-- Question Text -->
             <div class="min-h-[110px] flex items-center justify-center my-4 px-2">
                 <h3 id="question-text" class="text-lg sm:text-xl font-bold text-slate-800 text-center leading-relaxed">
                     載入中...
                 </h3>
             </div>
 
-            <!-- Rating scale indicators -->
             <div class="flex justify-between text-xs text-slate-400 px-2 mb-3 font-medium">
                 <span>1 (非常不符合)</span>
                 <span>3 (普通)</span>
                 <span>5 (非常符合)</span>
             </div>
 
-            <!-- Options (1 to 5 Buttons) -->
             <div class="grid grid-cols-5 gap-2 sm:gap-3 mb-6">
                 <button onclick="selectOption(1)" id="opt-1" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none">
                     <span>1</span>
@@ -196,7 +200,6 @@
                 </button>
             </div>
 
-            <!-- Navigation Buttons -->
             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
                 <button id="prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center">
                     <i class="fa-solid fa-chevron-left mr-1.5"></i> 上一題
@@ -208,19 +211,16 @@
             </div>
         </div>
 
-        <!-- Result Card (Hidden by default) -->
+        <!-- Result Card Stage 1 -->
         <div id="result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
             <div class="text-center">
                 <div id="result-icon-bg" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 text-3xl shadow-sm">
-                    <!-- Dynamic Icon -->
                 </div>
 
                 <p class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1">YOUR ATTACHMENT STYLE</p>
                 <h2 id="result-type" class="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
-                    <!-- Result Type Name -->
                 </h2>
                 <p id="result-subtitle" class="text-sm font-medium text-rose-500 mb-6">
-                    <!-- Subtitle -->
                 </p>
             </div>
 
@@ -233,7 +233,6 @@
                     <canvas id="radarChart"></canvas>
                 </div>
                 
-                <!-- Dimension Scores Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-6 text-center text-xs">
                     <div class="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-sm">
                         <span class="text-slate-400 block mb-0.5">安全信任</span>
@@ -254,7 +253,6 @@
                 </div>
             </div>
 
-            <!-- Warm Analysis Box -->
             <div class="space-y-4 text-slate-600 text-sm leading-relaxed mb-8">
                 <div class="bg-rose-50/60 rounded-2xl p-5 border border-rose-100">
                     <h4 class="font-bold text-slate-800 text-base mb-2 flex items-center gap-2">
@@ -271,21 +269,28 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Stage 2 Call to Action - Highly Prominent Banner & Button -->
+            <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 rounded-3xl p-6 text-white text-center shadow-xl mb-6 relative overflow-hidden">
+                <div class="relative z-10">
+                    <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block mb-2 backdrop-blur-sm">
+                        <i class="fa-solid fa-star text-amber-300 mr-1"></i> 請繼續完成下一階段
+                    </span>
+                    <h3 class="text-xl sm:text-2xl font-black mb-2 tracking-wide">第二階段：同儕社交關係深度評估</h3>
+                    <p class="text-xs sm:text-sm text-indigo-100 mb-5 max-w-md mx-auto">為了深入了解同儕互動與依附特質的關聯，請點擊下方按鈕繼續完成第 2 階段問卷。</p>
+                    <button onclick="startStage2()" id="stage2-cta-btn" class="w-full sm:w-auto px-10 py-4 bg-amber-400 hover:bg-amber-300 text-slate-900 font-black rounded-full shadow-2xl hover:scale-105 transition duration-300 text-base sm:text-lg flex items-center justify-center gap-3 mx-auto cursor-pointer border-2 border-amber-200">
+                        <span>開啟第二階段深度評估</span> <i class="fa-solid fa-circle-arrow-right text-xl animate-pulse"></i>
+                    </button>
+                </div>
+            </div>
+
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onclick="restartQuiz()" class="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-full transition text-sm">
                     <i class="fa-solid fa-rotate-right mr-1.5"></i> 重新測驗
                 </button>
-                <button onclick="startStage2()" id="stage2-cta-btn" class="w-full sm:w-auto px-7 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-full shadow-lg shadow-indigo-200 transition text-sm flex items-center justify-center gap-2">
-                    <span>進入第二階段：同儕社交關係深度評估</span> <i class="fa-solid fa-arrow-right"></i>
-                </button>
-                <button onclick="copyResult()" class="w-full sm:w-auto px-6 py-3 bg-rose-400 hover:bg-rose-500 text-white font-medium rounded-full shadow-md shadow-rose-200 transition text-sm">
-                    <i class="fa-solid fa-share-nodes mr-1.5"></i> 分享結果
-                </button>
             </div>
         </div>
 
-        <!-- Stage 2 Quiz Card (Hidden by default) -->
+        <!-- Stage 2 Quiz Card -->
         <div id="stage2-quiz-card" class="hidden bg-white rounded-3xl p-6 sm:p-8 card-shadow border border-indigo-100">
             <div class="mb-6">
                 <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
@@ -302,15 +307,14 @@
                 </div>
             </div>
 
-            <div class="min-h-[110px] flex items-center justify-center my-4 px-2 text-center">
+            <div class="min-h-[100px] flex items-center justify-center my-4 px-2 text-center">
                 <h3 id="s2-question-text" class="text-lg sm:text-xl font-bold text-slate-800 leading-relaxed">
                     載入中...
                 </h3>
             </div>
 
             <!-- Dynamic Options Container -->
-            <div id="s2-options-container" class="space-y-2.5 mb-6">
-                <!-- JavaScript will populate buttons here -->
+            <div id="s2-options-container" class="mb-6">
             </div>
 
             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
@@ -324,10 +328,7 @@
             </div>
         </div>
 
-        <!-- Stage 2 Result Card (Hidden by default) -->
-        <div id="stage2-result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-indigo-100">
-            <div class="text-center">
-        <!-- Stage 2 Result Card (Replaced with Submission Thank You Screen) -->
+        <!-- Stage 2 Submission Completed Card -->
         <div id="stage2-result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-emerald-100 text-center">
             <div class="w-20 h-20 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 text-3xl shadow-sm">
                 <i class="fa-solid fa-circle-check"></i>
@@ -346,14 +347,14 @@
                     <i class="fa-solid fa-shield-halved text-emerald-500 text-base mt-0.5"></i>
                     <div>
                         <strong class="text-slate-800 block mb-0.5">學術專題數據保密承諾：</strong>
-                        本問卷所填寫之所有數據與回答內容，將嚴格僅用於本次學術專題分析與論文報告轉寫，絕不作任何商業用途，亦不會對外公開您的個人隱私資訊，請您放心。
+                        本問卷所填寫之所有數據與回答內容，將嚴格僅用於本次學術專題分析與論文報告撰寫，絕不作任何商業用途，亦不會對外公開您的個人隱私資訊，請您放心。
                     </div>
                 </div>
                 <div class="flex items-start gap-2.5 pt-2 border-t border-slate-200/60">
                     <i class="fa-solid fa-database text-indigo-500 text-base mt-0.5"></i>
                     <div>
                         <strong class="text-slate-800 block mb-0.5">數據記錄狀態：</strong>
-                        您的問卷資料已安全地寫入專題研究資料庫中，並已連結您的驗證標記以防止重複計數。
+                        您的問卷資料已安全寫入專題研究資料庫中，並已連結您的驗證標記以防止重複計數。
                     </div>
                 </div>
             </div>
@@ -367,19 +368,1244 @@
 
     </main>
 
-    <!-- Toast Notification Container -->
+    <!-- Google Quick Login Modal -->
+    <div id="google-login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-left">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2.5 bg-rose-50 rounded-2xl text-rose-500">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg">身分驗證與管理員登入</h3>
+                    <p class="text-xs text-slate-400">受測者請輸入 Gmail / 管理員直接輸入 12345678</p>
+                </div>
+            </div>
+
+            <form onsubmit="confirmGoogleQuickLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">您的 Google / Gmail 信箱 或 管理員密碼</label>
+                    <input type="text" id="modal-google-email" required placeholder="例如：example@gmail.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">顯示姓名 / 暱稱 (選填)</label>
+                    <input type="text" id="modal-google-name" placeholder="例如：張同學" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeGoogleModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-full text-xs transition cursor-pointer">
+                        取消
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full text-xs shadow-md transition cursor-pointer">
+                        確認並繼續測驗
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Modal -->
+    <div id="admin-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 z-50 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-5 sm:p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/30">
+                        <i class="fa-solid fa-crown text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">專題研究數據管理後台</h3>
+                        <p class="text-xs text-slate-400">專題團隊數據中心：Google 表單式統計圖表、實時紀錄與 Google 試算表自動同步</p>
+                    </div>
+                </div>
+                <button onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white transition p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 border-b border-slate-200 shrink-0">
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 block font-bold mb-0.5">總填寫份數</span>
+                    <span id="admin-stat-total" class="text-xl font-black text-slate-800">0 份</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm">
+                    <span class="text-xs text-amber-600 block font-bold mb-0.5">焦慮型受測者 (二類)</span>
+                    <span id="admin-stat-anxious" class="text-xl font-black text-amber-600">0 人</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-indigo-100 shadow-sm">
+                    <span class="text-xs text-indigo-600 block font-bold mb-0.5">非焦慮型 (一類)</span>
+                    <span id="admin-stat-nonanxious" class="text-xl font-black text-indigo-600">0 人</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-emerald-100 shadow-sm">
+                    <span class="text-xs text-emerald-600 block font-bold mb-0.5">雲端資料庫狀態</span>
+                    <span id="admin-stat-sync-status" class="text-xs font-bold text-emerald-600 truncate block">
+                        <i class="fa-solid fa-cloud-check mr-1"></i> 雲端雲實時連線
+                    </span>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs & Actions Bar -->
+            <div class="px-4 pt-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-2 border-b-2 border-transparent">
+                    <button id="tab-btn-analytics" onclick="switchAdminTab('analytics')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-indigo-600 text-indigo-600 transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-chart-pie"></i> Google表單式統計分析
+                    </button>
+                    <button id="tab-btn-table" onclick="switchAdminTab('table')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-list-check"></i> 詳細受測紀錄與管理 (<span id="admin-record-count">0</span>)
+                    </button>
+                    <button id="tab-btn-sync" onclick="switchAdminTab('sync')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-file-excel text-emerald-600"></i> Google 試算表自動同步設定
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 pb-2">
+                    <button onclick="fetchAdminData()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate"></i> 重新整理數據
+                    </button>
+                    <button onclick="copyForGoogleSheets()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                        <i class="fa-solid fa-copy"></i> 複製貼至 Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content Container -->
+            <div class="p-4 sm:p-6 overflow-y-auto flex-grow bg-slate-50/70">
+                <!-- Tab 1: Google Forms Style Analytics Dashboard -->
+                <div id="admin-tab-content-analytics" class="space-y-6">
+                    <div id="analytics-container" class="space-y-6">
+                        <div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-indigo-500"></i>
+                            <div>正在計算每一題選項的百分比與統計圖表...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Detailed Records Table -->
+                <div id="admin-tab-content-table" class="hidden">
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+                        <table class="w-full text-left text-xs text-slate-700">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">#</th>
+                                    <th class="p-3">姓名 / 標記</th>
+                                    <th class="p-3">Email / 代碼</th>
+                                    <th class="p-3">第一階段依附風格</th>
+                                    <th class="p-3">第二階段分類</th>
+                                    <th class="p-3">第二階段回答明細</th>
+                                    <th class="p-3">提交時間</th>
+                                    <th class="p-3 text-center">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-table-body" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="8" class="p-8 text-center text-slate-400">
+                                        <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+                                        <div>資料讀取中...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Google Sheets Real-time Auto-Sync Configuration -->
+                <div id="admin-tab-content-sync" class="hidden space-y-4">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                                <i class="fa-solid fa-link"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-base">Google 試算表 (Google Sheets) 即時自動同步 Webhook 串接</h4>
+                                <p class="text-xs text-slate-500">設定後，每次有受測者提交問卷，系統將自動把數據即時推送到您的 Google 試算表中！</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 text-xs text-slate-600">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Google Apps Script 網頁應用程式網址 (Web App URL)</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="flex-grow px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
+                                    <button onclick="saveWebhookUrl()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition cursor-pointer shrink-0">
+                                        儲存設定
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                                <h5 class="font-bold text-slate-800 flex items-center gap-2 text-xs sm:text-sm">
+                                    <i class="fa-solid fa-list-ol text-indigo-500"></i> 超簡單 3 步驟設定 Google 試算表自動同步：
+                                </h5>
+                                <ol class="list-decimal list-inside space-y-2 leading-relaxed text-slate-600">
+                                    <li>開啟您的 <strong>Google 試算表</strong>，點選上方選單的 <strong>「擴充功能」 ➔ 「Apps Script」</strong>。</li>
+                                    <li>清空裡面的代碼，貼上右側的專用代碼後點擊「儲存」。</li>
+                                    <li>點選右上角 <strong>「部署」 ➔ 「新增部署」</strong> ➔ 類型選擇「網頁應用程式」，將「誰可以存取」設為 <strong>「所有人 (Anyone)」</strong> 點擊部署，並複製產生的網址貼至上方框中即可！</li>
+                                </ol>
+                            </div>
+
+                            <div class="bg-slate-900 text-slate-200 p-4 rounded-xl font-mono text-[11px] relative overflow-hidden">
+                                <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+                                    <span class="text-amber-400 font-bold">📄 複製下方代碼貼至 Google Apps Script：</span>
+                                    <button onclick="copyAppsScriptCode()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs font-sans rounded-lg transition cursor-pointer">
+                                        <i class="fa-solid fa-copy mr-1"></i> 一鍵複製 Apps Script 代碼
+                                    </button>
+                                </div>
+                                <pre id="apps-script-code" class="overflow-x-auto whitespace-pre-wrap leading-relaxed text-emerald-300">
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  // 如果是空表則建立標題列
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["提交時間", "受測者姓名", "Email/帳號", "第一階段依附類型", "第二階段分類", "第二階段回答細項"]);
+  }
+  
+  var s2Ans = Array.isArray(data.stage2Answers) ? data.stage2Answers.map(function(a, i){ return "Q"+(i+1)+":"+a; }).join(", ") : "";
+  
+  sheet.appendRow([
+    data.submittedAt || new Date().toLocaleString(),
+    data.userName || "未命名",
+    data.userEmail || "無",
+    data.dominantType || "",
+    data.stage2Category || "",
+    s2Ans
+  ]);
+  
+  return ContentService.createTextOutput(JSON.stringify({"result": "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800/90 text-white text-xs sm:text-sm px-5 py-3 rounded-full shadow-xl opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2 border border-slate-700/50 backdrop-blur-sm">
         <i class="fa-solid fa-circle-info text-rose-400"></i>
         <span id="toast-message">提示訊息</span>
     </div>
 
-    <!-- Footer -->
     <footer class="text-center text-xs text-slate-400 my-6">
-        <p>溫馨提示：本測驗結果僅供自我探索與自我覺察參考，並非專業臨床心理診斷。</p>
+        <p>溫馨提示：本測驗結果僅供自我探索與專題研究參考，並非專業臨床心理診斷。</p>
     </footer>
 
-    <!-- JavaScript Logic -->
     <script>
+        // Global variables
+        let currentUser = null;
+        let currentQuestion = 0;
+        let answers = new Array(16).fill(null);
+        let calculatedScores = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
+        let dominantType = 'secure';
+
+        let stage2CurrentQuestion = 0;
+        let stage2Answers = [];
+        let stage2QuestionsList = [];
+        let radarChartInstance = null;
+        let adminFetchedRecords = [];
+        let activeAdminTab = 'analytics';
+        let googleSheetsWebhookUrl = localStorage.getItem('attachment_webhook_url') || '';
+
+        // Stage 1 Questions dataset (16 questions, 4 dimensions)
+        const questions = [
+            { text: "在親密關係中，我能夠坦然地表達自己的脆弱與真實需求。", dim: "secure", name: "安全信任" },
+            { text: "當我遇到挫折時，我相信伴侶/重要他人會願意給我支持與溫暖。", dim: "secure", name: "安全信任" },
+            { text: "我能夠在享受親密連結的同時，也保持個人的獨立與自主。", dim: "secure", name: "安全信任" },
+            { text: "面對關係中的衝突，我習慣冷靜溝通，尋求雙方都能接受的解決方式。", dim: "secure", name: "安全信任" },
+
+            { text: "我常常擔心夥伴/重要他人並不真的愛我或會離開我。", dim: "anxiety", name: "焦慮敏感" },
+            { text: "當我想要和對方親密時，我很怕對方會把我推開。", dim: "anxiety", name: "焦慮敏感" },
+            { text: "我很渴望與人建立極度親密的關係，但這有時會嚇跑別人。", dim: "anxiety", name: "焦慮敏感" },
+            { text: "當對方不像我期待的那樣關心我時，我會感到非常沮喪與焦慮。", dim: "anxiety", name: "焦慮敏感" },
+
+            { text: "我覺得要完全信任對方是一件很困難的事。", dim: "avoidance", name: "逃避獨立" },
+            { text: "當有人跟我過度親密時，我會感到不太舒服或有壓力。", dim: "avoidance", name: "逃避獨立" },
+            { text: "我習慣獨立解決問題，極度不喜歡依賴別人。", dim: "avoidance", name: "逃避獨立" },
+            { text: "當我遇到困難或情緒低落時，我不習慣主動向對方尋求安慰。", dim: "avoidance", name: "逃避獨立" },
+
+            { text: "我傾向於和對方保持安全距離，不喜歡太赤裸地表達內心想法。", dim: "fearful", name: "恐懼矛盾" },
+            { text: "我內心非常渴望愛與親密，但每當有人靠近，我又會因為害怕受傷而推開對方。", dim: "fearful", name: "恐懼矛盾" },
+            { text: "在感情中我經常感到忽冷忽熱，一下子想貼近對方，一下子又想逃離。", dim: "fearful", name: "恐懼矛盾" },
+            { text: "每當關係變得深厚時，我總會預期最後一定會以受傷或失望告終。", dim: "fearful", name: "恐懼矛盾" }
+        ];
+
+        // Stage 2 Questions: Non-Anxious Type (Category 1 - 一類)
+        const stage2Category1 = [
+            { text: "1. 您認為依附型人格會影響到你和同儕的關係嗎？", options: ["極度會影響", "會影響", "普通/不一定", "不太會影響", "完全不會"] },
+            { text: "2. 朋友如果因為我跟其他人太好而感到不開心，我會覺得交友自由被限制了。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "3. 朋友如果總是擔心「我是不是討厭他」，相處久了我會覺得很累。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "4. 面對情緒起伏大、需要一直安撫跟確認關係的朋友，我有時會不知所措。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "5. 相較之下，我比較喜歡跟「界線明確、給彼此自由空間」的人當好朋友。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "6. 您身邊有焦慮型依附的同學/朋友嗎？", options: ["有，很多位", "有，少數幾位", "沒有 / 沒遇到過", "不清楚 / 不確定"] },
+            { text: "7. 您覺得有焦慮型依附的同學/朋友會是一個負擔嗎？", options: ["非常是負擔", "算是負擔", "普通 / 看狀況", "不太算負擔", "完全不會"] },
+            { text: "8. 您會想跟有焦慮型依附的人當朋友嗎？", options: ["非常想", "願意試試看", "順其自然", "不太想", "完全不想"] }
+        ];
+
+        // Stage 2 Questions: Anxious Type Only (Category 2 - 二類)
+        const stage2Category2 = [
+            { text: "1. 在群組傳訊息後如果很久沒人理，我會很慌張，甚至想把訊息收回。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "2. 看到朋友發合照卻沒標記或找我，我會覺得自己被排擠了。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "3. 聽到老師宣布「自由分組」時，我會很不安，很怕自己最後沒人要。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "4. 只要老師或組員稍微檢討一下我的部分，我當下就會覺得自己被否定、非常難過。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "5. 我常為了不被組員討厭，主動扛下很多不屬於我的工作。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "6. 看到好朋友跟其他人玩得很開心，我內心會有點吃醋或被忽視的感覺。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "7. 因為太害怕失去朋友，我常不敢拒絕同學的要求。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] }
+        ];
+
+        // Attachment Style Result Definitions
+        const attachmentTypeData = {
+            secure: {
+                name: "安全型依附 (Secure)",
+                subtitle: "自信開放 · 情感穩定 · 善於溝通",
+                colorClass: "bg-emerald-100 text-emerald-600",
+                desc: "在親密與社交關係中，你展現出高度的安全感與情感成熟度。你能夠坦然表達自己的脆弱與需求，同時也能尊重他人的界線。你不害怕被拒絕，也能建構溫暖而持久的對等連結。",
+                advice: "保持你開放且溫和的心態！你的內心穩定度常常能在群體中成為安撫他人的力量。"
+            },
+            anxious: {
+                name: "焦慮型依附 (Anxious)",
+                subtitle: "心思細膩 · 渴望連結 · 敏感重視夥伴",
+                colorClass: "bg-amber-100 text-amber-600",
+                desc: "你在關係中非常投入且心思敏感，極度看重與伴侶或同儕的連結。當對方未即時回應或表現冷淡時，內心容易升起不安與沮喪感，有時會習慣透過重複確認來獲取安全感。",
+                advice: "練習把關懷與認同的目光轉回自己身上。告訴自己：『即使他人忙碌，我的價值依然是完整且值得被愛的。』"
+            },
+            avoidant: {
+                name: "逃避型依附 (Avoidant)",
+                subtitle: "獨立自強 · 重視界線 · 自我保護",
+                colorClass: "bg-sky-100 text-sky-600",
+                desc: "你非常獨立，習慣自己消化情緒與解決問題。當關係變得過於親密或對方有所依賴時，你可能會下意識拉開距離，因為適當的個人空間能讓你感到最安心與自在。",
+                advice: "獨立是你的優勢，但情感的交融並不等於失去自由。嘗試試著向信任的人展露微小的真實情緒，體驗彼此支持的溫暖。"
+            },
+            fearful: {
+                name: "混亂/恐懼型依附 (Fearful-Avoidant)",
+                subtitle: "渴望親密 · 害怕受傷 · 內心拉扯",
+                colorClass: "bg-purple-100 text-purple-600",
+                desc: "你的內心常經歷矛盾的拉扯：一方面渴望溫暖的親密關係，另一方面又深怕靠近後會受傷或失望。這種不安讓你容易在靠近與推開之間躊躇不前。",
+                advice: "給自己多一點溫柔與接納。理解這份矛盾是內心保護自己的本能，嘗試以小步慢跑的方式練習漸進式的安全信任。"
+            }
+        };
+
+        // Admin Dashboard Functions
+        function openAdminDashboard() {
+            const modal = document.getElementById('admin-modal');
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100');
+                fetchAdminData();
+            }
+        }
+
+        function closeAdminDashboard() {
+            const modal = document.getElementById('admin-modal');
+            if (modal) {
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        // Authentication Handlers
+        async function handleGoogleLogin() {
+            if (window.firebaseAuth && window.signInWithPopup && window.googleProvider) {
+                try {
+                    const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
+                    const user = result.user;
+                    currentUser = {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || user.email.split('@')[0],
+                        photoURL: user.photoURL || `https://placehold.co/100x100/e0e7ff/3730a3?text=G`
+                    };
+                    
+                    document.getElementById('logged-out-view').classList.add('hidden');
+                    document.getElementById('logged-in-view').classList.remove('hidden');
+                    document.getElementById('user-name').innerText = currentUser.displayName;
+                    document.getElementById('user-avatar').src = currentUser.photoURL;
+                    
+                    document.getElementById('user-status-tag').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 身份已驗證`;
+                    showToast(`Google 帳號 ${currentUser.displayName} 登入成功！`);
+
+                    await checkExistingSubmission(currentUser.uid);
+                    return;
+                } catch (e) {
+                    console.log("Google Popup Auth notice:", e);
+                }
+            }
+            openGoogleModal();
+        }
+
+        function openGoogleModal() {
+            const modal = document.getElementById('google-login-modal');
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100');
+            }
+        }
+
+        function closeGoogleModal() {
+            const modal = document.getElementById('google-login-modal');
+            if (modal) {
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        async function confirmGoogleQuickLogin(e) {
+            if (e) e.preventDefault();
+            const emailInput = document.getElementById('modal-google-email');
+            const nameInput = document.getElementById('modal-google-name');
+            
+            const rawVal = emailInput ? emailInput.value.trim() : '';
+            const isAdmin = (rawVal === '12345678' || rawVal.startsWith('12345678@'));
+            
+            let email = rawVal;
+            if (isAdmin && !rawVal.includes('@')) {
+                email = 'admin12345678@mingdao.edu.tw';
+            } else if (!email) {
+                email = 'user@gmail.com';
+            }
+
+            const inputName = nameInput ? nameInput.value.trim() : '';
+            const name = inputName ? inputName : (isAdmin ? '管理員 (12345678)' : email.split('@')[0]);
+            const uid = isAdmin ? 'admin_12345678' : ('g_' + btoa(email).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16));
+
+            currentUser = {
+                uid: uid,
+                email: email,
+                displayName: isAdmin ? `👑 管理員 (12345678)` : name,
+                photoURL: `https://placehold.co/100x100/fce7f3/be185d?text=${encodeURIComponent(name.substring(0, 1).toUpperCase())}`,
+                isAdmin: isAdmin
+            };
+
+            closeGoogleModal();
+
+            document.getElementById('logged-out-view').classList.add('hidden');
+            document.getElementById('logged-in-view').classList.remove('hidden');
+            document.getElementById('user-name').innerText = currentUser.displayName;
+            document.getElementById('user-avatar').src = currentUser.photoURL;
+
+            if (isAdmin) {
+                document.getElementById('user-status-tag').innerHTML = `<i class="fa-solid fa-crown text-amber-500"></i> 管理員模式 (可看後台)`;
+                showToast(`👑 12345678 管理員驗證成功！已啟用專題數據後台與測試權限`);
+            } else {
+                document.getElementById('user-status-tag').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 身份已驗證`;
+                showToast(`身分驗證完成 (${currentUser.displayName})`);
+            }
+
+            await checkExistingSubmission(currentUser.uid);
+        }
+
+        function handleSignOut() {
+            currentUser = null;
+            document.getElementById('logged-out-view').classList.remove('hidden');
+            document.getElementById('logged-in-view').classList.add('hidden');
+            
+            const adminBtn = document.getElementById('admin-dashboard-btn');
+            if (adminBtn) adminBtn.classList.add('hidden');
+
+            const startBtn = document.getElementById('start-btn');
+            if (startBtn) {
+                startBtn.disabled = true;
+                startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-slate-300 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-not-allowed";
+                startBtn.innerHTML = `請先驗證帳號 <i class="fa-solid fa-lock ml-2"></i>`;
+            }
+            
+            const warningBox = document.getElementById('already-completed-box');
+            if (warningBox) warningBox.classList.add('hidden');
+
+            showToast("已退出登入");
+        }
+
+        async function checkExistingSubmission(uid) {
+            const startBtn = document.getElementById('start-btn');
+            const warningBox = document.getElementById('already-completed-box');
+            const adminBtn = document.getElementById('admin-dashboard-btn');
+
+            // 管理員模式 (輸入 12345678)：允許無限制重複填寫與開啟後台看板
+            if (currentUser && currentUser.isAdmin) {
+                if (warningBox) warningBox.classList.add('hidden');
+                if (adminBtn) adminBtn.classList.remove('hidden');
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer";
+                    startBtn.innerHTML = `👑 管理員開始 / 重複測試 <i class="fa-solid fa-rotate-right ml-2"></i>`;
+                }
+                return;
+            }
+
+            if (adminBtn) adminBtn.classList.add('hidden');
+
+            // 一般受測者檢查：若已完成則禁止重複填寫
+            try {
+                if (window.firebaseDb && window.doc && window.getDoc) {
+                    const appId = window.appId || 'attachment-survey-app';
+                    const docRef = window.doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'submissions', uid);
+                    const docSnap = await window.getDoc(docRef);
+                    if (docSnap && docSnap.exists()) {
+                        if (warningBox) warningBox.classList.remove('hidden');
+                        if (startBtn) {
+                            startBtn.disabled = true;
+                            startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-slate-300 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-not-allowed";
+                            startBtn.innerHTML = `您已完成問卷 (不開放重複填寫) <i class="fa-solid fa-lock ml-2"></i>`;
+                        }
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log("Check submission note:", e);
+            }
+
+            if (warningBox) warningBox.classList.add('hidden');
+            if (startBtn) {
+                startBtn.disabled = false;
+                startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer";
+                startBtn.innerHTML = `開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>`;
+            }
+        }
+
+        // Quiz Stage 1 Flow
+        function startQuiz() {
+            if (!currentUser) {
+                showToast("請先完成 Google / 信箱身分驗證再開始測驗喔！");
+                openGoogleModal();
+                return;
+            }
+
+            document.getElementById('intro-card').classList.add('hidden');
+            document.getElementById('quiz-card').classList.remove('hidden');
+            currentQuestion = 0;
+            answers = new Array(16).fill(null);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question-text').innerText = `${currentQuestion + 1}. ${q.text}`;
+            document.getElementById('question-number').innerText = `題目 ${currentQuestion + 1}`;
+            document.getElementById('dimension-badge').innerText = `${q.name}維度`;
+
+            const percent = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+
+            const prevBtn = document.getElementById('prev-btn');
+            if (currentQuestion === 0) {
+                prevBtn.classList.add('opacity-0', 'pointer-events-none');
+            } else {
+                prevBtn.classList.remove('opacity-0', 'pointer-events-none');
+            }
+
+            const nextBtnText = document.getElementById('next-btn-text');
+            if (currentQuestion === questions.length - 1) {
+                nextBtnText.innerText = "查看依附雷達圖";
+            } else {
+                nextBtnText.innerText = "下一題";
+            }
+
+            updateOptionStyles();
+        }
+
+        function selectOption(score) {
+            answers[currentQuestion] = score;
+            updateOptionStyles();
+        }
+
+        function updateOptionStyles() {
+            const selectedScore = answers[currentQuestion];
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`opt-${i}`);
+                if (btn) {
+                    if (selectedScore === i) {
+                        btn.className = "option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-rose-400 bg-rose-200 text-rose-800 font-bold text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none shadow-sm";
+                    } else {
+                        btn.className = "option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none";
+                    }
+                }
+            }
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestion] === null) {
+                showToast("請先選擇此題的分數喔！");
+                return;
+            }
+
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                calculateResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function calculateResults() {
+            let scores = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
+            
+            questions.forEach((q, idx) => {
+                const val = answers[idx] || 3;
+                scores[q.dim] += val;
+            });
+
+            calculatedScores = scores;
+
+            // Determine dominant type based on dimension scores
+            if (scores.anxiety >= 14 && scores.anxiety >= scores.avoidance && scores.anxiety >= scores.secure) {
+                dominantType = 'anxious';
+            } else if (scores.avoidance >= 14 && scores.avoidance >= scores.anxiety && scores.avoidance >= scores.secure) {
+                dominantType = 'avoidant';
+            } else if (scores.fearful >= 14 || (scores.anxiety >= 13 && scores.avoidance >= 13)) {
+                dominantType = 'fearful';
+            } else if (scores.secure >= scores.anxiety && scores.secure >= scores.avoidance) {
+                dominantType = 'secure';
+            } else {
+                const sorted = Object.keys(scores).sort((a,b) => scores[b] - scores[a]);
+                dominantType = sorted[0];
+            }
+
+            const info = attachmentTypeData[dominantType];
+
+            document.getElementById('result-type').innerText = info.name;
+            document.getElementById('result-subtitle').innerText = info.subtitle;
+            document.getElementById('result-desc').innerText = info.desc;
+            document.getElementById('result-advice').innerText = info.advice;
+
+            document.getElementById('score-secure').innerText = `${scores.secure} / 20`;
+            document.getElementById('score-anxiety').innerText = `${scores.anxiety} / 20`;
+            document.getElementById('score-avoidance').innerText = `${scores.avoidance} / 20`;
+            document.getElementById('score-fearful').innerText = `${scores.fearful} / 20`;
+
+            const iconBox = document.getElementById('result-icon-bg');
+            iconBox.className = `w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 text-3xl shadow-sm ${info.colorClass}`;
+            iconBox.innerHTML = `<i class="fa-solid fa-heart-pulse"></i>`;
+
+            document.getElementById('quiz-card').classList.add('hidden');
+            document.getElementById('result-card').classList.remove('hidden');
+
+            renderRadarChart(scores);
+        }
+
+        function renderRadarChart(scores) {
+            const ctx = document.getElementById('radarChart');
+            if (!ctx) return;
+
+            if (radarChartInstance) {
+                radarChartInstance.destroy();
+            }
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['安全信任', '焦慮敏感', '逃避獨立', '恐懼矛盾'],
+                    datasets: [{
+                        label: '依附維度得分',
+                        data: [scores.secure, scores.anxiety, scores.avoidance, scores.fearful],
+                        backgroundColor: 'rgba(244, 63, 94, 0.2)',
+                        borderColor: 'rgba(244, 63, 94, 0.8)',
+                        pointBackgroundColor: '#f43f5e',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#f43f5e',
+                        borderWidth: 2.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 20,
+                            ticks: { stepSize: 5, display: false },
+                            pointLabels: {
+                                font: { family: "'Zen Maru Gothic', sans-serif", size: 12, weight: 'bold' },
+                                color: '#475569'
+                            }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Quiz Stage 2 Flow
+        function startStage2() {
+            document.getElementById('result-card').classList.add('hidden');
+            document.getElementById('stage2-quiz-card').classList.remove('hidden');
+
+            if (dominantType === 'anxious') {
+                stage2QuestionsList = stage2Category2;
+                document.getElementById('s2-type-badge').innerText = "第二階段：焦慮型依附同儕社交評估 (二類)";
+                document.getElementById('s2-type-badge').className = "bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold text-xs";
+            } else {
+                stage2QuestionsList = stage2Category1;
+                document.getElementById('s2-type-badge').innerText = "第二階段：同儕社交關係與界線評估 (一類)";
+                document.getElementById('s2-type-badge').className = "bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold text-xs";
+            }
+
+            stage2CurrentQuestion = 0;
+            stage2Answers = new Array(stage2QuestionsList.length).fill(null);
+            document.getElementById('s2-question-total').innerText = ` / ${stage2QuestionsList.length}`;
+
+            showStage2Question();
+        }
+
+        function showStage2Question() {
+            const currentObj = stage2QuestionsList[stage2CurrentQuestion];
+            const text = typeof currentObj === 'string' ? currentObj : currentObj.text;
+            const options = (typeof currentObj === 'object' && currentObj.options) ? currentObj.options : ["非常有同感", "符合", "普通", "不太符合", "完全不符合"];
+
+            document.getElementById('s2-question-text').innerText = text;
+            document.getElementById('s2-question-number').innerText = `題目 ${stage2CurrentQuestion + 1}`;
+
+            const percent = ((stage2CurrentQuestion + 1) / stage2QuestionsList.length) * 100;
+            document.getElementById('s2-progress-bar').style.width = `${percent}%`;
+
+            // 統一第二階段所有題目的選項樣式
+            const container = document.getElementById('s2-options-container');
+            const selectedVal = stage2Answers[stage2CurrentQuestion];
+
+            let html = `<div class="space-y-2.5 sm:space-y-3">`;
+            options.forEach((optText, idx) => {
+                const isSelected = selectedVal === (idx + 1);
+                const optLetter = String.fromCharCode(65 + idx); // A, B, C, D, E...
+                
+                const btnClass = isSelected 
+                    ? "py-3.5 px-4 sm:px-5 rounded-2xl border-2 border-indigo-500 bg-indigo-50/90 text-indigo-950 font-bold text-sm sm:text-base shadow-sm flex items-center justify-between transition-all duration-200" 
+                    : "py-3.5 px-4 sm:px-5 rounded-2xl border-2 border-slate-100 bg-slate-50/80 hover:bg-indigo-50/50 hover:border-indigo-200 font-medium text-slate-700 text-sm sm:text-base flex items-center justify-between transition-all duration-200 cursor-pointer";
+                
+                const badgeClass = isSelected
+                    ? "w-7 h-7 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm"
+                    : "w-7 h-7 rounded-full bg-slate-200/80 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0";
+                
+                const checkIcon = isSelected 
+                    ? '<i class="fa-solid fa-circle-check text-indigo-500 text-lg ml-2 shrink-0"></i>' 
+                    : '<i class="fa-regular fa-circle text-slate-300 text-lg ml-2 shrink-0"></i>';
+
+                html += `
+                    <button onclick="selectStage2Option(${idx + 1})" class="option-btn w-full text-left ${btnClass}">
+                        <div class="flex items-center gap-3">
+                            <span class="${badgeClass}">${optLetter}</span>
+                            <span>${optText}</span>
+                        </div>
+                        ${checkIcon}
+                    </button>
+                `;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+
+            const prevBtn = document.getElementById('s2-prev-btn');
+            if (stage2CurrentQuestion === 0) {
+                prevBtn.classList.add('opacity-0', 'pointer-events-none');
+            } else {
+                prevBtn.classList.remove('opacity-0', 'pointer-events-none');
+            }
+
+            const nextBtnText = document.getElementById('s2-next-btn-text');
+            if (stage2CurrentQuestion === stage2QuestionsList.length - 1) {
+                nextBtnText.innerText = "完成並送出數據";
+            } else {
+                nextBtnText.innerText = "下一題";
+            }
+        }
+
+        function selectStage2Option(score) {
+            stage2Answers[stage2CurrentQuestion] = score;
+            showStage2Question();
+        }
+
+        function nextStage2Question() {
+            if (stage2Answers[stage2CurrentQuestion] === null) {
+                showToast("請先選擇本題的分數或選項唷！");
+                return;
+            }
+
+            if (stage2CurrentQuestion < stage2QuestionsList.length - 1) {
+                stage2CurrentQuestion++;
+                showStage2Question();
+            } else {
+                finishStage2();
+            }
+        }
+
+        function prevStage2Question() {
+            if (stage2CurrentQuestion > 0) {
+                stage2CurrentQuestion--;
+                showStage2Question();
+            }
+        }
+
+        async function finishStage2() {
+            const payload = {
+                uid: currentUser.uid,
+                userEmail: currentUser.email || '',
+                userName: currentUser.displayName || '',
+                stage1Answers: answers,
+                stage1Scores: calculatedScores,
+                dominantType: dominantType,
+                stage2Category: dominantType === 'anxious' ? 'Category2_Anxious' : 'Category1_NonAnxious',
+                stage2Answers: stage2Answers,
+                submittedAt: new Date().toISOString()
+            };
+
+            // Save responses to Cloud Firestore Database
+            try {
+                if (window.firebaseDb && window.doc && window.setDoc && currentUser) {
+                    const appId = window.appId || 'attachment-survey-app';
+                    const subRef = window.doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'submissions', currentUser.uid);
+                    await window.setDoc(subRef, payload, { merge: true });
+                }
+            } catch (err) {
+                console.log("Save survey data note:", err);
+            }
+
+            // Real-time Auto Sync to Google Sheets if configured
+            syncToGoogleSheets(payload);
+
+            document.getElementById('stage2-quiz-card').classList.add('hidden');
+            document.getElementById('stage2-result-card').classList.remove('hidden');
+            showToast("感謝填寫！數據已成功提交並自動同步至雲端。");
+        }
+
+        async function syncToGoogleSheets(payload) {
+            const url = googleSheetsWebhookUrl || localStorage.getItem('attachment_webhook_url');
+            if (!url) return;
+
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                console.log("Auto synced to Google Sheets successfully.");
+            } catch (e) {
+                console.log("Webhook auto-sync note:", e);
+            }
+        }
+
+        function switchAdminTab(tabName) {
+            activeAdminTab = tabName;
+            
+            const tabs = ['analytics', 'table', 'sync'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`admin-tab-content-${t}`);
+                
+                if (t === tabName) {
+                    if (btn) btn.className = "px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-indigo-600 text-indigo-600 transition flex items-center gap-2 cursor-pointer";
+                    if (content) content.classList.remove('hidden');
+                } else {
+                    if (btn) btn.className = "px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer";
+                    if (content) content.classList.add('hidden');
+                }
+            });
+
+            if (tabName === 'analytics') {
+                renderAdminAnalytics();
+            } else if (tabName === 'table') {
+                renderAdminTable();
+            } else if (tabName === 'sync') {
+                const input = document.getElementById('sheets-webhook-url');
+                if (input) input.value = googleSheetsWebhookUrl;
+            }
+        }
+
+        function saveWebhookUrl() {
+            const input = document.getElementById('sheets-webhook-url');
+            if (input) {
+                googleSheetsWebhookUrl = input.value.trim();
+                localStorage.setItem('attachment_webhook_url', googleSheetsWebhookUrl);
+                showToast("Google 試算表 Webhook 網址已成功儲存！");
+            }
+        }
+
+        function copyAppsScriptCode() {
+            const code = document.getElementById('apps-script-code').innerText;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = code;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast("Apps Script 代碼已複製！請貼至 Google 試算表「擴充功能 > Apps Script」中");
+        }
+
+        function renderAdminAnalytics() {
+            const container = document.getElementById('analytics-container');
+            if (!container) return;
+
+            if (adminFetchedRecords.length === 0) {
+                container.innerHTML = `
+                    <div class="p-10 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                        <i class="fa-solid fa-chart-bar text-4xl mb-3 text-slate-300"></i>
+                        <div class="font-bold text-slate-700 text-base mb-1">尚無數據進行統計分析</div>
+                        <div class="text-xs">當有受測者提交問卷後，這裡將會自動生成如同 Google 表單一樣的選項比例分析。</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const total = adminFetchedRecords.length;
+
+            // Compute Stage 1 Attachment Style Distributions
+            const styleCounts = { secure: 0, anxious: 0, avoidant: 0, fearful: 0 };
+            adminFetchedRecords.forEach(r => {
+                const t = r.dominantType || 'secure';
+                styleCounts[t] = (styleCounts[t] || 0) + 1;
+            });
+
+            // Filter records into Category 1 (Non-anxious) and Category 2 (Anxious)
+            const cat1Records = adminFetchedRecords.filter(r => r.stage2Category === 'Category1_NonAnxious' || r.dominantType !== 'anxious');
+            const cat2Records = adminFetchedRecords.filter(r => r.stage2Category === 'Category2_Anxious' || r.dominantType === 'anxious');
+
+            let html = `
+                <!-- Global Overview Card -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-pie-chart text-rose-500"></i> 第一階段：受測者依附類型分布總覽 (共 ${total} 人)
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-100">
+                            <span class="text-xs text-emerald-800 font-bold block mb-1">安全型依附</span>
+                            <div class="text-2xl font-black text-emerald-700">${styleCounts.secure} <span class="text-xs font-normal">人</span></div>
+                            <div class="text-[11px] text-emerald-600 mt-1 font-bold">${((styleCounts.secure/total)*100).toFixed(1)}%</div>
+                        </div>
+                        <div class="bg-amber-50/80 p-4 rounded-2xl border border-amber-100">
+                            <span class="text-xs text-amber-800 font-bold block mb-1">焦慮型依附</span>
+                            <div class="text-2xl font-black text-amber-700">${styleCounts.anxious} <span class="text-xs font-normal">人</span></div>
+                            <div class="text-[11px] text-amber-600 mt-1 font-bold">${((styleCounts.anxious/total)*100).toFixed(1)}%</div>
+                        </div>
+                        <div class="bg-sky-50/80 p-4 rounded-2xl border border-sky-100">
+                            <span class="text-xs text-sky-800 font-bold block mb-1">逃避型依附</span>
+                            <div class="text-2xl font-black text-sky-700">${styleCounts.avoidant} <span class="text-xs font-normal">人</span></div>
+                            <div class="text-[11px] text-sky-600 mt-1 font-bold">${((styleCounts.avoidant/total)*100).toFixed(1)}%</div>
+                        </div>
+                        <div class="bg-purple-50/80 p-4 rounded-2xl border border-purple-100">
+                            <span class="text-xs text-purple-800 font-bold block mb-1">恐懼型依附</span>
+                            <div class="text-2xl font-black text-purple-700">${styleCounts.fearful} <span class="text-xs font-normal">人</span></div>
+                            <div class="text-[11px] text-purple-600 mt-1 font-bold">${((styleCounts.fearful/total)*100).toFixed(1)}%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Helper to render a question analytics block
+            function renderQuestionCard(qIndex, qTitle, optionsList, recordsList, badgeColorClass) {
+                const subTotal = recordsList.length;
+                if (subTotal === 0) return '';
+
+                const counts = new Array(optionsList.length).fill(0);
+                recordsList.forEach(r => {
+                    if (Array.isArray(r.stage2Answers) && r.stage2Answers[qIndex] !== undefined && r.stage2Answers[qIndex] !== null) {
+                        const optIdx = r.stage2Answers[qIndex] - 1;
+                        if (optIdx >= 0 && optIdx < optionsList.length) {
+                            counts[optIdx]++;
+                        }
+                    }
+                });
+
+                let optionsHtml = '';
+                optionsList.forEach((optText, i) => {
+                    const count = counts[i];
+                    const pct = subTotal > 0 ? ((count / subTotal) * 100).toFixed(1) : 0;
+                    const optLetter = String.fromCharCode(65 + i);
+
+                    optionsHtml += `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-medium text-slate-700">
+                                <span><strong class="text-indigo-600 mr-1.5">${optLetter}.</strong> ${optText}</span>
+                                <span class="font-bold text-slate-800">${pct}% <span class="text-slate-400 text-[10px]">(${count}票)</span></span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden flex">
+                                <div class="bg-indigo-500 h-3 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                return `
+                    <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <h5 class="font-bold text-slate-800 text-sm sm:text-base leading-snug">
+                                ${qTitle}
+                            </h5>
+                            <span class="text-[10px] ${badgeColorClass} font-bold px-2.5 py-1 rounded-full shrink-0">
+                                回覆率: ${subTotal} 人
+                            </span>
+                        </div>
+                        <div class="space-y-3 pt-1">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Section 1: Category 1 (一類 - 非焦慮型) Stage 2 Questions Analytics
+            html += `
+                <div class="pt-2">
+                    <div class="bg-indigo-900 text-white p-4 rounded-2xl mb-4 flex items-center justify-between shadow-md">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-indigo-300 text-lg"></i>
+                            <h4 class="font-bold text-sm sm:text-base">第二階段：一類 (非焦慮型) 同儕關係評估統計 (共 ${cat1Records.length} 人)</h4>
+                        </div>
+                        <span class="text-xs bg-indigo-800 text-indigo-200 px-3 py-1 rounded-full font-bold">一類問卷數據分析</span>
+                    </div>
+                    <div class="space-y-4">
+            `;
+            stage2Category1.forEach((qObj, idx) => {
+                html += renderQuestionCard(idx, qObj.text, qObj.options, cat1Records, 'bg-indigo-50 text-indigo-600');
+            });
+            html += `</div></div>`;
+
+            // Section 2: Category 2 (二類 - 焦慮型) Stage 2 Questions Analytics
+            html += `
+                <div class="pt-4">
+                    <div class="bg-amber-900 text-white p-4 rounded-2xl mb-4 flex items-center justify-between shadow-md">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-heart-crack text-amber-300 text-lg"></i>
+                            <h4 class="font-bold text-sm sm:text-base">第二階段：二類 (焦慮型) 同儕社交情境統計 (共 ${cat2Records.length} 人)</h4>
+                        </div>
+                        <span class="text-xs bg-amber-800 text-amber-200 px-3 py-1 rounded-full font-bold">二類專屬分析</span>
+                    </div>
+                    <div class="space-y-4">
+            `;
+            stage2Category2.forEach((qObj, idx) => {
+                html += renderQuestionCard(idx, qObj.text, qObj.options, cat2Records, 'bg-amber-50 text-amber-700');
+            });
+            html += `</div></div>`;
+
+            container.innerHTML = html;
+        }
+
+        async function fetchAdminData() {
+            const tbody = document.getElementById('admin-table-body');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-slate-400">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-indigo-500"></i>
+                            <div>正在同步與載入專題研究數據...</div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            adminFetchedRecords = [];
+
+            try {
+                if (window.firebaseDb && window.collection && window.getDocs) {
+                    const appId = window.appId || 'attachment-survey-app';
+                    const subCol = window.collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'submissions');
+                    const querySnapshot = await window.getDocs(subCol);
+
+                    querySnapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        data.docId = docSnap.id;
+                        adminFetchedRecords.push(data);
+                    });
+                }
+            } catch (err) {
+                console.log("Fetch admin data notice:", err);
+            }
+
+            if (activeAdminTab === 'analytics') {
+                renderAdminAnalytics();
+            }
+            renderAdminTable();
+        }
+
+        // 安全精準的刪除數據函數
+        async function deleteRecord(docId) {
+            if (!docId) return;
+
+            const targetRecord = adminFetchedRecords.find(r => (r.docId || r.uid) === docId);
+            const userName = targetRecord ? (targetRecord.userName || '未命名受測者') : '這筆受測資料';
+
+            if (!confirm(`確定要刪除「${userName}」這筆受測資料嗎？此操作將從雲端資料庫中移除。`)) {
+                return;
+            }
+
+            try {
+                if (window.firebaseDb && window.doc && window.deleteDoc) {
+                    const appId = window.appId || 'attachment-survey-app';
+                    const docRef = window.doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'submissions', docId);
+                    await window.deleteDoc(docRef);
+                }
+            } catch (err) {
+                console.log("Cloud delete notice:", err);
+            }
+
+            // 即時更新本地數據陣列並刷新畫面與統計
+            adminFetchedRecords = adminFetchedRecords.filter(r => (r.docId || r.uid) !== docId);
+            renderAdminTable();
+            if (activeAdminTab === 'analytics') {
+                renderAdminAnalytics();
+            }
+            showToast(`已成功刪除受測資料 (${userName})`);
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            const totalStat = document.getElementById('admin-stat-total');
+            const anxiousStat = document.getElementById('admin-stat-anxious');
+            const nonAnxiousStat = document.getElementById('admin-stat-nonanxious');
+            const countText = document.getElementById('admin-record-count');
+
+            if (countText) countText.innerText = adminFetchedRecords.length;
+            if (totalStat) totalStat.innerText = `${adminFetchedRecords.length} 份`;
+
+            let anxiousCount = 0;
+            let nonAnxiousCount = 0;
+
+            if (adminFetchedRecords.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-slate-400">
+                            <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-300"></i>
+                            <div>目前研究資料庫中尚無受測者提交紀錄。</div>
+                        </td>
+                    </tr>
+                `;
+                if (anxiousStat) anxiousStat.innerText = '0 人';
+                if (nonAnxiousStat) nonAnxiousStat.innerText = '0 人';
+                return;
+            }
+
+            // Sort by submittedAt descending
+            adminFetchedRecords.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+
+            let html = '';
+            adminFetchedRecords.forEach((rec, idx) => {
+                const isAnxious = (rec.stage2Category === 'Category2_Anxious' || rec.dominantType === 'anxious');
+                if (isAnxious) anxiousCount++; else nonAnxiousCount++;
+
+                const categoryLabel = isAnxious 
+                    ? `<span class="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-md font-bold text-[11px] border border-amber-200"><i class="fa-solid fa-fire mr-1"></i>二類 (焦慮型)</span>`
+                    : `<span class="bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-md font-bold text-[11px] border border-indigo-200"><i class="fa-solid fa-shield mr-1"></i>一類 (非焦慮)</span>`;
+
+                const typeNames = {
+                    secure: '安全型',
+                    anxious: '焦慮型',
+                    avoidant: '逃避型',
+                    fearful: '恐懼型'
+                };
+
+                const typeBadge = `<span class="font-bold text-slate-800">${typeNames[rec.dominantType] || rec.dominantType || '已評估'}</span>`;
+                
+                let s2AnswersSummary = '無';
+                if (Array.isArray(rec.stage2Answers)) {
+                    s2AnswersSummary = rec.stage2Answers.map((ans, i) => `Q${i+1}:${ans !== null ? ans : '-'}`).join(' | ');
+                }
+
+                const dateDisplay = rec.submittedAt ? new Date(rec.submittedAt).toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '未紀錄';
+
+                const recordId = rec.docId || rec.uid;
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-slate-400">${idx + 1}</td>
+                        <td class="p-3 font-bold text-slate-800">${rec.userName || '未命名'}</td>
+                        <td class="p-3 text-slate-500 text-[11px] font-mono">${rec.userEmail || '無'}</td>
+                        <td class="p-3">${typeBadge}</td>
+                        <td class="p-3">${categoryLabel}</td>
+                        <td class="p-3 font-mono text-slate-600 text-[11px] bg-slate-50/80 rounded-lg p-1.5 border border-slate-100">${s2AnswersSummary}</td>
+                        <td class="p-3 text-slate-400 text-[11px] whitespace-nowrap">${dateDisplay}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="deleteRecord('${recordId}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold transition flex items-center gap-1 mx-auto cursor-pointer" title="手動刪除此筆資料">
+                                <i class="fa-solid fa-trash-can text-xs"></i> 刪除
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            if (anxiousStat) anxiousStat.innerText = `${anxiousCount} 人`;
+            if (nonAnxiousStat) nonAnxiousStat.innerText = `${nonAnxiousCount} 人`;
+        }
+
+        // Export data to CSV file
+        function exportToCSV() {
+            if (adminFetchedRecords.length === 0) {
+                showToast("目前沒有可匯出的紀錄資料");
+                return;
+            }
+
+            let csv = '\uFEFF';
+            csv += '序號,受測者姓名,Email/帳號代碼,第一階段主要依附類型,第二階段分類,第二階段各題選項明細,提交時間\n';
+
+            adminFetchedRecords.forEach((rec, idx) => {
+                const s2AnsStr = Array.isArray(rec.stage2Answers) ? rec.stage2Answers.map((a, i) => `Q${i+1}:${a}`).join('; ') : '';
+                const timeStr = rec.submittedAt ? new Date(rec.submittedAt).toLocaleString('zh-TW') : '';
+                
+                csv += `"${idx + 1}","${rec.userName || ''}","${rec.userEmail || ''}","${rec.dominantType || ''}","${rec.stage2Category || ''}","${s2AnsStr}","${timeStr}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `專題問卷數據紀錄_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("CSV 檔案已成功下載！可直接於 Excel 或 Google 試算表開啟");
+        }
+
+        // Copy Tab-Separated Values for instant paste into Google Sheets
+        function copyForGoogleSheets() {
+            if (adminFetchedRecords.length === 0) {
+                showToast("目前沒有可複製的紀錄資料");
+                return;
+            }
+
+            let tsv = '序號\t受測者姓名\tEmail/帳號代碼\t第一階段主要依附類型\t第二階段分類\t第二階段各題選項明細\t提交時間\n';
+
+            adminFetchedRecords.forEach((rec, idx) => {
+                const s2AnsStr = Array.isArray(rec.stage2Answers) ? rec.stage2Answers.map((a, i) => `Q${i+1}:${a}`).join('; ') : '';
+                const timeStr = rec.submittedAt ? new Date(rec.submittedAt).toLocaleString('zh-TW') : '';
+                tsv += `${idx + 1}\t${rec.userName || ''}\t${rec.userEmail || ''}\t${rec.dominantType || ''}\t${rec.stage2Category || ''}\t${s2AnsStr}\t${timeStr}\n`;
+            });
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = tsv;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast("已複製表格！可以直接在 Google 試算表中點擊 A1 儲存格並按 Ctrl+V 貼上");
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            answers = new Array(16).fill(null);
+            document.getElementById('result-card').classList.add('hidden');
+            document.getElementById('intro-card').classList.remove('hidden');
+        }
+
+        function copyResult() {
+            const type = document.getElementById('result-type').innerText;
+            const textToCopy = `我在【專題依附風格與同儕關係測驗】中測出了「${type}」！快來探索你的親密與同儕互動風格吧！`;
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast("結果已複製到剪貼簿囉！");
+        }
+
         function showToast(message) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toast-message');
@@ -395,569 +1621,40 @@
                 console.log("Toast Notice:", message);
             }
         }
+
+        // Global functions binding
+        window.openAdminDashboard = openAdminDashboard;
+        window.closeAdminDashboard = closeAdminDashboard;
+        window.switchAdminTab = switchAdminTab;
+        window.saveWebhookUrl = saveWebhookUrl;
+        window.copyAppsScriptCode = copyAppsScriptCode;
+        window.renderAdminAnalytics = renderAdminAnalytics;
+        window.syncToGoogleSheets = syncToGoogleSheets;
+        window.handleGoogleLogin = handleGoogleLogin;
+        window.openGoogleModal = openGoogleModal;
+        window.closeGoogleModal = closeGoogleModal;
+        window.confirmGoogleQuickLogin = confirmGoogleQuickLogin;
+        window.handleSignOut = handleSignOut;
+        window.fetchAdminData = fetchAdminData;
+        window.deleteRecord = deleteRecord;
+        window.exportToCSV = exportToCSV;
+        window.copyForGoogleSheets = copyForGoogleSheets;
+        window.startQuiz = startQuiz;
+        window.showQuestion = showQuestion;
+        window.selectOption = selectOption;
+        window.nextQuestion = nextQuestion;
+        window.prevQuestion = prevQuestion;
+        window.calculateResults = calculateResults;
+        window.renderRadarChart = renderRadarChart;
+        window.startStage2 = startStage2;
+        window.showStage2Question = showStage2Question;
+        window.selectStage2Option = selectStage2Option;
+        window.nextStage2Question = nextStage2Question;
+        window.prevStage2Question = prevStage2Question;
+        window.finishStage2 = finishStage2;
+        window.restartQuiz = restartQuiz;
+        window.copyResult = copyResult;
         window.showToast = showToast;
-
-        let currentUser = null;
-        let hasSubmitted = false;
-        let currentIdx = 0;
-        let userAnswers = new Array(16).fill(null);
-        let evaluatedCategory = "non-anxious";
-        let currentS2Idx = 0;
-        let currentS2Questions = [];
-        let userS2Answers = [];
-        let radarChartInstance = null;
-
-        // Stage 1 Quiz Questions (16 Items)
-        const quizQuestions = [
-            { id: 1, text: "在親密關係中，我能夠坦然地表達自己的脆弱與真實需求。", dim: "secure" },
-            { id: 2, text: "當我遇到挫折時，我相信伴侶/重要他人會願意給我支持與溫暖。", dim: "secure" },
-            { id: 3, text: "我能夠在享受親密連結的同時，也保持個人的獨立與自主。", dim: "secure" },
-            { id: 4, text: "面對關係中的衝突，我習慣冷靜溝通，尋求雙方都能接受的解決方式。", dim: "secure" },
-            { id: 5, text: "我經常擔心伴侶其實沒有像我愛他那樣深深愛著我。", dim: "anxiety" },
-            { id: 6, text: "當伴侶沒有即時回應訊息或展現冷淡時，我會感到極度不安與沮喪。", dim: "anxiety" },
-            { id: 7, text: "我非常渴望極度親密的關係，但這有時會讓對方感到有壓力。", dim: "anxiety" },
-            { id: 8, text: "我需要伴侶頻繁地給予言語或行動上的確認，才能讓我感到安心。", dim: "anxiety" },
-            { id: 9, text: "當有人試圖在情感上與我過度靠近時，我會不自主地想後退或保持距離。", dim: "avoidance" },
-            { id: 10, text: "遇到困難或情緒低落時，我習慣自己消化，極少主動向伴侶尋求安慰。", dim: "avoidance" },
-            { id: 11, text: "我非常看重個人的空間與自由，討厭在關係中被依賴或束縛。", dim: "avoidance" },
-            { id: 12, text: "我不太習慣敞開心扉，也傾向隱藏自己太赤裸的真實情緒。", dim: "avoidance" },
-            { id: 13, text: "我內心非常渴望愛與親密，但每當有人靠近，我又會因為害怕受傷而推開對方。", dim: "fearful" },
-            { id: 14, text: "在感情中我經常感到忽冷忽熱，一下子想貼近對方，一下子又想逃離。", dim: "fearful" },
-            { id: 15, text: "我常覺得自己不值得被好好愛著，同時也很難去真正信任任何人。", dim: "fearful" },
-            { id: 16, text: "每當關係變得深厚時，我總會預期最後一定會以受傷或失望告終。", dim: "fearful" }
-        ];
-
-        // Stage 2 Questions for Anxious Category
-        const s2QuestionsAnxious = [
-            { id: 1, text: "當同儕或朋友沒有即時回覆群組/個人訊息時，你會感到焦慮或被排擠嗎？", options: ["1 (完全不會)", "2 (偶爾會)", "3 (經常會)", "4 (非常嚴重)"] },
-            { id: 2, text: "在團體分組合作時，你是否會因為害怕被討厭而承擔過多非必要的任務？", options: ["1 (從不)", "2 (偶爾)", "3 (經常)", "4 (每次都這樣)"] },
-            { id: 3, text: "當朋友跟其他人關係變得比較好時，你內心是否容易產生吃醋或被取代的恐懼？", options: ["1 (完全不會)", "2 (些微會)", "3 (滿明顯的)", "4 (極度強烈)"] },
-            { id: 4, text: "在同儕互動中，你是否常需要朋友口頭確認或肢體回應來確定彼此的友好關係？", options: ["1 (不需要)", "2 (偶爾需要)", "3 (經常需要)", "4 (非常需要)"] },
-            { id: 5, text: "當朋友對你的想法或作業提出建議時，你是否容易過度解讀為對你個人的否定？", options: ["1 (完全不會)", "2 (偶爾會)", "3 (經常會)", "4 (極度敏感)"] },
-            { id: 6, text: "面對同儕的邀約，即使你很累或沒興趣，是否依然很難說出「拒絕」？", options: ["1 (輕鬆拒絕)", "2 (偶爾難拒絕)", "3 (非常難拒絕)", "4 (完全不敢拒絕)"] },
-            { id: 7, text: "你是否會透過不斷觀察朋友的微表情或語氣變化，來推測他們對你的評價？", options: ["1 (從不)", "2 (偶爾)", "3 (經常)", "4 (隨時都在觀察)"] },
-            { id: 8, text: "在團體討論中，你是否會因為擔心說錯話被笑，而選擇迎合大眾意見？", options: ["1 (堅持己見)", "2 (偶爾迎合)", "3 (經常迎合)", "4 (完全迎合)"] }
-        ];
-
-        // Stage 2 Questions for Non-Anxious Category
-        const s2QuestionsNonAnxious = [
-            { id: 1, text: "當朋友對你產生高度情感依賴或頻繁吐露負面情緒時，你是否會感到沉重或想拉開距離？", options: ["1 (完全不會)", "2 (偶爾會)", "3 (滿經常的)", "4 (極度強烈)"] },
-            { id: 2, text: "在同儕社交中，你是否非常需要保有個人獨立空間，討厭太緊密的群體綁定？", options: ["1 (不重視)", "2 (普通)", "3 (滿重視的)", "4 (極度重視)"] },
-            { id: 3, text: "當朋友沒有即時回覆訊息時，你通常能夠輕鬆看待並繼續做自己的事嗎？", options: ["1 (非常困難)", "2 (稍微困難)", "3 (可以)", "4 (完全沒問題)"] },
-            { id: 4, text: "面對分組合作或同儕分工時，你能否清楚劃定職責，拒絕不屬於自己的負擔？", options: ["1 (無法拒絕)", "2 (偶爾可以)", "3 (大多可以)", "4 (非常清楚界線)"] },
-            { id: 5, text: "當團體內部發生爭執或情緒對立時，你通常能保持冷靜且理性處理嗎？", options: ["1 (完全不行)", "2 (偶爾可以)", "3 (大多可以)", "4 (非常冷靜理性)"] },
-            { id: 6, text: "你是否習慣在情感上保持自足，鮮少向朋友敞開心扉或求助？", options: ["1 (經常求助)", "2 (偶爾求助)", "3 (較少求助)", "4 (完全不求助)"] },
-            { id: 7, text: "當同儕關係出現衝突時，你更傾向於理性溝通還是退縮冷處理？", options: ["1 (積極溝通)", "2 (視情況)", "3 (偏向冷處理)", "4 (直接退縮後退)"] },
-            { id: 8, text: "你認為自己在朋友群體中，是一個能給予他人安全感與情緒穩定支持的人嗎？", options: ["1 (完全不是)", "2 (普通)", "3 (大多是)", "4 (非常肯定是)"] }
-        ];
-
-        // Results Database definitions
-        const resultsDatabase = {
-            secure: {
-                title: "安全型依附 (Secure Attachment)",
-                subtitle: "情感溫暖 · 信任自如 · 健全界線",
-                icon: "fa-solid fa-shield-heart",
-                colorClass: "bg-emerald-100 text-emerald-600",
-                chartBg: "rgba(16, 185, 129, 0.2)",
-                chartBorder: "rgb(16, 185, 129)",
-                desc: "你在親密關係中展現出高度的安全感與情感信任。你既能坦然表達自己的脆弱與需求，也能給予伴侶充分的尊重與個人空間。面對衝突時，你能以成熟理性的態度溝通，不隨意懷疑對方的愛，也不會因為親密而感到窒息。",
-                advice: "繼續維持良好的溝通習慣與情緒覺察能力。你的穩定與包容是關係中非常寶貴的基石，也能為身邊的夥伴帶來滿滿的安全感。"
-            },
-            anxious: {
-                title: "焦慮型依附 (Anxious Attachment)",
-                subtitle: "渴望連結 · 敏感不安 · 尋求確認",
-                icon: "fa-solid fa-heart-crack",
-                colorClass: "bg-amber-100 text-amber-600",
-                chartBg: "rgba(245, 158, 11, 0.2)",
-                chartBorder: "rgb(245, 158, 11)",
-                desc: "你對親密關係懷有極高的熱情與渴望，但同時內心深處常伴隨著被拋棄或被忽視的恐懼。你對伴侶的情緒變化與回應速度非常敏感，容易因為一時的冷淡而焦慮不安，並習慣透過頻繁地確認或靠近來獲取安心感。",
-                advice: "嘗試將關注焦點慢慢收回自己身上，建立內在的自我價值感。當焦慮升起時，給自己一點時間做深呼吸，練習告訴自己：「對方的忙碌或冷淡不等於不愛我」。"
-            },
-            avoidant: {
-                title: "逃避型依附 (Avoidant Attachment)",
-                subtitle: "情感獨立 · 保持距離 · 防衛空間",
-                icon: "fa-solid fa-user-shield",
-                colorClass: "bg-sky-100 text-sky-600",
-                chartBg: "rgba(14, 165, 233, 0.2)",
-                chartBorder: "rgb(14, 165, 233)",
-                desc: "你極度看重個人的獨立與自由空間。當關係變得過於親密或對方展現出高度依賴時，你可能會感到不適甚至想後退保持距離。你習慣獨自消化情緒，不太習慣向他人敞開心扉或展現脆弱。",
-                advice: "獨立是很好的品質，但適度的依賴與脆弱表達能讓關係更有深度。嘗試從小事開始，向信任的人分享一點點真實的情緒，體驗被理解與接納的溫暖。"
-            },
-            fearful: {
-                title: "恐懼矛盾型依附 (Fearful-Avoidant Attachment)",
-                subtitle: "渴望親密 · 害怕受傷 · 內心拉扯",
-                icon: "fa-solid fa-masks-theater",
-                colorClass: "bg-purple-100 text-purple-600",
-                chartBg: "rgba(168, 85, 247, 0.2)",
-                chartBorder: "rgb(168, 85, 247)",
-                desc: "你內心深處非常渴望溫暖與親密連結，但同時又伴隨著強烈的害怕受傷與信任障礙。當有人試圖靠近你時，你可能會因為不安而推開對方；但當對方遠離時，你又會感到被拋棄的孤獨，呈現出靠近又推開的內心拉扯。",
-                advice: "理解自己的矛盾情緒來自於保護自己的防衛機制。學習允許自己以慢步調建立關係，給予彼此安全與信任的建構時間，不用急於推進或驟然封閉。"
-            }
-        };
-
-        window.onload = function() {
-            if (window.firebaseAuth) {
-                window.firebaseAuth.onAuthStateChanged(async (user) => {
-                    const loadingEl = document.getElementById('auth-loading');
-                    const loggedOutView = document.getElementById('logged-out-view');
-                    const loggedInView = document.getElementById('logged-in-view');
-                    const startBtn = document.getElementById('start-btn');
-                    const completedBox = document.getElementById('already-completed-box');
-
-                    if (loadingEl) loadingEl.classList.add('hidden');
-
-                    if (user) {
-                        currentUser = user;
-                        document.getElementById('user-name').innerText = user.displayName || user.email || "已登入使用者";
-                        document.getElementById('user-avatar').src = user.photoURL || "https://placehold.co/100x100/e2e8f0/475569?text=User";
-                        document.getElementById('user-status-tag').innerHTML = `<i class="fa-solid fa-circle-check"></i> Google 驗證成功`;
-                        
-                        loggedOutView.classList.add('hidden');
-                        loggedInView.classList.remove('hidden');
-
-                        await checkExistingSubmission(user.uid);
-                    } else if (!currentUser || !currentUser.isGuest) {
-                        currentUser = null;
-                        hasSubmitted = false;
-                        loggedInView.classList.add('hidden');
-                        loggedOutView.classList.remove('hidden');
-                        completedBox.classList.add('hidden');
-
-                        startBtn.disabled = true;
-                        startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-slate-300 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-not-allowed";
-                        startBtn.innerHTML = `請先登入或選擇訪客模式 <i class="fa-solid fa-lock ml-2"></i>`;
-                    }
-                });
-            }
-        };
-
-        async function checkExistingSubmission(uid) {
-            const startBtn = document.getElementById('start-btn');
-            const completedBox = document.getElementById('already-completed-box');
-
-            try {
-                const docRef = window.doc(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses', uid);
-                const docSnap = await window.getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    hasSubmitted = true;
-                    completedBox.classList.remove('hidden');
-                    startBtn.disabled = true;
-                    startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-slate-200 text-slate-400 font-bold rounded-full transition duration-300 text-base cursor-not-allowed";
-                    startBtn.innerHTML = `您已完成填寫 <i class="fa-solid fa-check ml-2"></i>`;
-                } else {
-                    hasSubmitted = false;
-                    completedBox.classList.add('hidden');
-                    startBtn.disabled = false;
-                    startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg shadow-rose-200 transition duration-300 text-base cursor-pointer";
-                    startBtn.innerHTML = `開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>`;
-                }
-            } catch (err) {
-                console.error("Error checking submission:", err);
-                startBtn.disabled = false;
-                startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg shadow-rose-200 transition duration-300 text-base cursor-pointer";
-                startBtn.innerHTML = `開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>`;
-            }
-        }
-
-        async function handleGoogleLogin() {
-            try {
-                await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
-                showToast("Google 帳號登入成功！");
-            } catch (error) {
-                console.error("Login failed:", error);
-                if (error.code === 'auth/unauthorized-domain' || error.message?.includes('unauthorized-domain')) {
-                    showToast("預覽網域未登錄，已自動開啟訪客體驗模式！");
-                    enableGuestMode("unauthorized-domain");
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    showToast("您取消了 Google 登入，可選擇訪客模式體驗");
-                } else {
-                    showToast("登入受限，已為您切換至訪客體驗模式");
-                    enableGuestMode();
-                }
-            }
-        }
-
-        function enableGuestMode(reason = "") {
-            currentUser = {
-                uid: 'guest_' + Math.random().toString(36).substring(2, 9),
-                displayName: '訪客體驗者',
-                photoURL: 'https://placehold.co/100x100/e2e8f0/475569?text=Guest',
-                isGuest: true
-            };
-            hasSubmitted = false;
-
-            const loggedOutView = document.getElementById('logged-out-view');
-            const loggedInView = document.getElementById('logged-in-view');
-            const startBtn = document.getElementById('start-btn');
-            const completedBox = document.getElementById('already-completed-box');
-
-            if (loggedOutView) loggedOutView.classList.add('hidden');
-            if (loggedInView) loggedInView.classList.remove('hidden');
-            if (completedBox) completedBox.classList.add('hidden');
-
-            document.getElementById('user-name').innerText = "訪客體驗者 (展示模式)";
-            document.getElementById('user-avatar').src = currentUser.photoURL;
-            document.getElementById('user-status-tag').innerHTML = `<i class="fa-solid fa-eye text-amber-500"></i> 免登入測試中`;
-
-            startBtn.disabled = false;
-            startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg shadow-rose-200 transition duration-300 text-base cursor-pointer";
-            startBtn.innerHTML = `開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>`;
-
-            if (reason === "unauthorized-domain") {
-                const domainWarning = document.getElementById('domain-warning-box');
-                if (domainWarning) domainWarning.classList.remove('hidden');
-            } else {
-                showToast("已切換為訪客體驗模式！");
-            }
-        }
-
-        async function handleSignOut() {
-            try {
-                if (currentUser && !currentUser.isGuest && window.firebaseAuth) {
-                    await window.signOut(window.firebaseAuth);
-                }
-                currentUser = null;
-                hasSubmitted = false;
-                document.getElementById('logged-in-view').classList.add('hidden');
-                document.getElementById('logged-out-view').classList.remove('hidden');
-                document.getElementById('already-completed-box').classList.add('hidden');
-                const domainWarning = document.getElementById('domain-warning-box');
-                if (domainWarning) domainWarning.classList.add('hidden');
-
-                const startBtn = document.getElementById('start-btn');
-                startBtn.disabled = true;
-                startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-slate-300 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-not-allowed";
-                startBtn.innerHTML = `請先登入或選擇訪客模式 <i class="fa-solid fa-lock ml-2"></i>`;
-
-                showToast("已順利退出");
-            } catch (error) {
-                console.error("Signout error:", error);
-            }
-        }
-
-        function startQuiz() {
-            if (!currentUser) {
-                showToast("請點擊『免登入訪客模式』或登入 Google 帳號！");
-                return;
-            }
-            if (hasSubmitted) {
-                showToast("您已完成過問卷填寫囉！");
-                return;
-            }
-            document.getElementById('intro-card').classList.add('hidden');
-            document.getElementById('quiz-card').classList.remove('hidden');
-            showQuestion();
-        }
-
-        function showQuestion() {
-            const q = quizQuestions[currentIdx];
-            document.getElementById('question-text').innerText = `${q.id}. ${q.text}`;
-            document.getElementById('question-number').innerText = `題目 ${q.id}`;
-            
-            const dimNames = {
-                secure: '安全信任',
-                anxiety: '焦慮敏感',
-                avoidance: '逃避獨立',
-                fearful: '恐懼矛盾'
-            };
-            document.getElementById('dimension-badge').innerText = `${dimNames[q.dim]}維度`;
-
-            const progressPercent = ((currentIdx + 1) / quizQuestions.length) * 100;
-            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-
-            const currentAns = userAnswers[currentIdx];
-            for (let i = 1; i <= 5; i++) {
-                const btn = document.getElementById(`opt-${i}`);
-                if (i === currentAns) {
-                    btn.className = "option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-rose-400 bg-rose-100 text-rose-700 font-bold text-base sm:text-lg flex flex-col items-center justify-center shadow-sm";
-                } else {
-                    btn.className = "option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none";
-                }
-            }
-
-            const prevBtn = document.getElementById('prev-btn');
-            if (currentIdx === 0) {
-                prevBtn.classList.add('opacity-0', 'pointer-events-none');
-            } else {
-                prevBtn.classList.remove('opacity-0', 'pointer-events-none');
-            }
-
-            const nextBtnText = document.getElementById('next-btn-text');
-            if (currentIdx === quizQuestions.length - 1) {
-                nextBtnText.innerText = '分析結果';
-            } else {
-                nextBtnText.innerText = '下一題';
-            }
-        }
-
-        function selectOption(val) {
-            userAnswers[currentIdx] = val;
-            showQuestion();
-        }
-
-        function nextQuestion() {
-            if (userAnswers[currentIdx] === null) {
-                showToast("請先點選一個符合程度（1-5）唷！");
-                return;
-            }
-
-            if (currentIdx < quizQuestions.length - 1) {
-                currentIdx++;
-                showQuestion();
-            } else {
-                calculateResults();
-            }
-        }
-
-        function prevQuestion() {
-            if (currentIdx > 0) {
-                currentIdx--;
-                showQuestion();
-            }
-        }
-
-        function calculateResults() {
-            const scores = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
-
-            quizQuestions.forEach((q, idx) => {
-                const answer = userAnswers[idx] || 0;
-                scores[q.dim] += answer;
-            });
-
-            document.getElementById('score-secure').innerText = `${scores.secure} / 20`;
-            document.getElementById('score-anxiety').innerText = `${scores.anxiety} / 20`;
-            document.getElementById('score-avoidance').innerText = `${scores.avoidance} / 20`;
-            document.getElementById('score-fearful').innerText = `${scores.fearful} / 20`;
-
-            let primaryType = "secure";
-
-            if (scores.secure >= 15 && scores.anxiety < 12 && scores.avoidance < 12 && scores.fearful < 12) {
-                primaryType = "secure";
-            } else if (scores.fearful >= 14 || (scores.anxiety >= 13 && scores.avoidance >= 13)) {
-                primaryType = "fearful";
-            } else if (scores.anxiety > scores.avoidance && scores.anxiety > scores.secure) {
-                primaryType = "anxious";
-            } else if (scores.avoidance > scores.anxiety && scores.avoidance > scores.secure) {
-                primaryType = "avoidant";
-            } else {
-                const maxVal = Math.max(scores.secure, scores.anxiety, scores.avoidance, scores.fearful);
-                if (maxVal === scores.secure) primaryType = "secure";
-                else if (maxVal === scores.anxiety) primaryType = "anxious";
-                else if (maxVal === scores.avoidance) primaryType = "avoidant";
-                else primaryType = "fearful";
-            }
-
-            evaluatedCategory = (primaryType === "anxious") ? "anxious" : "non-anxious";
-            const resData = resultsDatabase[primaryType];
-
-            document.getElementById('result-type').innerText = resData.title;
-            document.getElementById('result-subtitle').innerText = resData.subtitle;
-            document.getElementById('result-desc').innerText = resData.desc;
-            document.getElementById('result-advice').innerText = resData.advice;
-
-            const iconContainer = document.getElementById('result-icon-bg');
-            iconContainer.className = `w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 text-3xl shadow-sm ${resData.colorClass}`;
-            iconContainer.innerHTML = `<i class="${resData.icon}"></i>`;
-
-            renderRadarChart(scores, resData);
-
-            document.getElementById('quiz-card').classList.add('hidden');
-            document.getElementById('result-card').classList.remove('hidden');
-        }
-
-        function renderRadarChart(scores, resData) {
-            const ctx = document.getElementById('radarChart').getContext('2d');
-
-            if (radarChartInstance) {
-                radarChartInstance.destroy();
-            }
-
-            radarChartInstance = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['安全信任', '焦慮敏感', '逃避獨立', '恐懼矛盾'],
-                    datasets: [{
-                        label: '得分 (4-20)',
-                        data: [scores.secure, scores.anxiety, scores.avoidance, scores.fearful],
-                        backgroundColor: resData.chartBg,
-                        borderColor: resData.chartBorder,
-                        borderWidth: 2.5,
-                        pointBackgroundColor: resData.chartBorder,
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: resData.chartBorder,
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        r: {
-                            min: 0,
-                            max: 20,
-                            ticks: {
-                                stepSize: 5,
-                                display: false
-                            },
-                            pointLabels: {
-                                font: {
-                                    size: 12,
-                                    family: "'Zen Maru Gothic', sans-serif",
-                                    weight: 'bold'
-                                },
-                                color: '#475569'
-                            },
-                            grid: {
-                                color: '#e2e8f0'
-                            },
-                            angleLines: {
-                                color: '#cbd5e1'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-        }
-
-        function startStage2() {
-            if (evaluatedCategory === "anxious") {
-                currentS2Questions = s2QuestionsAnxious;
-                document.getElementById('s2-type-badge').innerText = "第二階段：焦慮型同儕互動評估";
-            } else {
-                currentS2Questions = s2QuestionsNonAnxious;
-                document.getElementById('s2-type-badge').innerText = "第二階段：非焦慮型同儕界線評估";
-            }
-
-            currentS2Idx = 0;
-            userS2Answers = new Array(currentS2Questions.length).fill(null);
-            document.getElementById('s2-question-total').innerText = ` / ${currentS2Questions.length}`;
-
-            document.getElementById('result-card').classList.add('hidden');
-            document.getElementById('stage2-quiz-card').classList.remove('hidden');
-            showStage2Question();
-        }
-
-        function showStage2Question() {
-            const q = currentS2Questions[currentS2Idx];
-            document.getElementById('s2-question-text').innerText = `${q.id}. ${q.text}`;
-            document.getElementById('s2-question-number').innerText = `題目 ${currentS2Idx + 1}`;
-
-            const progressPercent = ((currentS2Idx + 1) / currentS2Questions.length) * 100;
-            document.getElementById('s2-progress-bar').style.width = `${progressPercent}%`;
-
-            const container = document.getElementById('s2-options-container');
-            container.innerHTML = '';
-
-            q.options.forEach((optText, scoreIdx) => {
-                const scoreValue = scoreIdx + 1;
-                const isSelected = userS2Answers[currentS2Idx] === scoreValue;
-
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.onclick = () => selectStage2Option(scoreValue);
-
-                if (isSelected) {
-                    btn.className = 'w-full text-left p-3.5 sm:p-4 rounded-2xl border-2 border-indigo-500 bg-indigo-50 font-bold text-indigo-900 transition flex items-center justify-between shadow-sm';
-                    btn.innerHTML = `<span>${optText}</span> <i class="fa-solid fa-circle-check text-indigo-500"></i>`;
-                } else {
-                    btn.className = 'w-full text-left p-3.5 sm:p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-300 font-medium text-slate-700 transition flex items-center justify-between';
-                    btn.innerHTML = `<span>${optText}</span>`;
-                }
-                container.appendChild(btn);
-            });
-
-            const prevBtn = document.getElementById('s2-prev-btn');
-            if (currentS2Idx === 0) prevBtn.classList.add('opacity-0', 'pointer-events-none');
-            else prevBtn.classList.remove('opacity-0', 'pointer-events-none');
-
-            const nextBtnText = document.getElementById('s2-next-btn-text');
-            if (currentS2Idx === currentS2Questions.length - 1) nextBtnText.innerText = '提交問卷數據';
-            else nextBtnText.innerText = '下一題';
-        }
-
-        function selectStage2Option(val) {
-            userS2Answers[currentS2Idx] = val;
-            showStage2Question();
-        }
-
-        function nextStage2Question() {
-            if (userS2Answers[currentS2Idx] === null) {
-                showToast("請點選一個符合的選項唷！");
-                return;
-            }
-
-            if (currentS2Idx < currentS2Questions.length - 1) {
-                currentS2Idx++;
-                showStage2Question();
-            } else {
-                calculateStage2Result();
-            }
-        }
-
-        function prevStage2Question() {
-            if (currentS2Idx > 0) {
-                currentS2Idx--;
-                showStage2Question();
-            }
-        }
-
-        async function calculateStage2Result() {
-            document.getElementById('stage2-quiz-card').classList.add('hidden');
-            document.getElementById('stage2-result-card').classList.remove('hidden');
-
-            if (currentUser && window.firebaseDb && !currentUser.isGuest) {
-                try {
-                    const responseData = {
-                        uid: currentUser.uid,
-                        userName: currentUser.displayName || "匿名",
-                        userEmail: currentUser.email || "",
-                        submittedAt: new Date().toISOString(),
-                        stage1Answers: userAnswers,
-                        stage2Category: evaluatedCategory,
-                        stage2Answers: userS2Answers
-                    };
-
-                    const docRef = window.doc(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses', currentUser.uid);
-                    await window.setDoc(docRef, responseData);
-                    hasSubmitted = true;
-                    console.log("Survey successfully recorded into database.");
-                } catch (e) {
-                    console.error("Failed to save survey response:", e);
-                }
-            } else {
-                console.log("Guest mode completed survey successfully.");
-            }
-        }
-
-        function restartQuiz() {
-            currentIdx = 0;
-            userAnswers = new Array(quizQuestions.length).fill(null);
-            document.getElementById('stage2-result-card').classList.add('hidden');
-            document.getElementById('stage2-quiz-card').classList.add('hidden');
-            document.getElementById('result-card').classList.add('hidden');
-            document.getElementById('intro-card').classList.remove('hidden');
-        }
-
-        function copyResult() {
-            const type = document.getElementById('result-type').innerText;
-            const textToCopy = `我完成了【依附關係風格測驗】，我的測驗結果是「${type}」！快來透過 16 道四大維度測驗瞭解你的親密風格吧！`;
-
-            const tempInput = document.createElement('textarea');
-            tempInput.value = textToCopy;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-
-            showToast("結果已複製到剪貼簿囉！");
-        }
     </script>
 </body>
 </html>
