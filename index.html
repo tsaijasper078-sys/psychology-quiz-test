@@ -440,190 +440,139 @@
         </div>
     </div>
 
-    <!-- Admin Dashboard Modal -->
-    <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-6 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-100 flex flex-col overflow-hidden text-left">
+    <!-- Admin Dashboard Modal (Full Screen & Zero Clipping) -->
+    <div id="admin-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-0 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-slate-50 w-screen h-screen flex flex-col overflow-hidden text-left shadow-2xl">
             
             <!-- Modal Header -->
-            <div class="p-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
+            <div class="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between shrink-0 shadow-md">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center font-bold text-lg shadow-inner">
                         <i class="fa-solid fa-chart-line text-white"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-base sm:text-lg">專題研究後台分析看板 (資料來自 Google 試算表)</h3>
+                        <h3 class="font-bold text-base sm:text-lg">專題研究後台分析看板 (Google 表單風格分析)</h3>
                         <p class="text-xs text-slate-400">明道中學應用英語科專題研究團隊專用管理介面</p>
                     </div>
                 </div>
-                <button onclick="closeAdminDashboard()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition cursor-pointer">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                <button onclick="closeAdminDashboard()" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
 
             <!-- Top Stats Overview Bar -->
-            <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 border-b border-slate-200 text-center shrink-0">
-                <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <div class="text-[11px] text-slate-400 font-bold mb-0.5">總有效問卷數</div>
-                    <div id="admin-stat-total" class="text-lg sm:text-xl font-black text-slate-800">0 份</div>
+            <div class="grid grid-cols-3 gap-3 p-4 bg-white border-b border-slate-200 text-center shrink-0 shadow-xs">
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <div class="text-xs text-slate-400 font-bold mb-0.5">總有效問卷數</div>
+                    <div id="admin-stat-total" class="text-lg sm:text-2xl font-black text-slate-800">0 份</div>
                 </div>
-                <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <div class="text-[11px] text-amber-600 font-bold mb-0.5">焦慮傾向人數</div>
-                    <div id="admin-stat-anxious" class="text-lg sm:text-xl font-black text-amber-600">0 人</div>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <div class="text-xs text-amber-600 font-bold mb-0.5">焦慮傾向人數</div>
+                    <div id="admin-stat-anxious" class="text-lg sm:text-2xl font-black text-amber-600">0 人</div>
                 </div>
-                <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <div class="text-[11px] text-indigo-600 font-bold mb-0.5">非焦慮傾向人數</div>
-                    <div id="admin-stat-nonanxious" class="text-lg sm:text-xl font-black text-indigo-600">0 人</div>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <div class="text-xs text-indigo-600 font-bold mb-0.5">非焦慮傾向人數</div>
+                    <div id="admin-stat-nonanxious" class="text-lg sm:text-2xl font-black text-indigo-600">0 人</div>
                 </div>
             </div>
 
             <!-- Navigation Tabs & Actions Bar -->
             <div class="px-4 pt-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
                 <div class="flex items-center gap-2 border-b-2 border-transparent">
-                    <button id="tab-btn-analytics" onclick="switchAdminTab('analytics')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-indigo-600 text-indigo-600 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-chart-pie"></i> 統計分析
+                    <button id="tab-btn-analytics" onclick="switchAdminTab('analytics')" class="px-4 py-3 font-bold text-xs sm:text-sm border-b-2 border-indigo-600 text-indigo-600 transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-chart-pie"></i> 統計分析 (Google 表單風格)
                     </button>
-                    <button id="tab-btn-table" onclick="switchAdminTab('table')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
+                    <button id="tab-btn-table" onclick="switchAdminTab('table')" class="px-4 py-3 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-list-check"></i> 詳細受測紀錄 (<span id="admin-record-count">0</span>)
                     </button>
-                    <button id="tab-btn-sync" onclick="switchAdminTab('sync')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
+                    <button id="tab-btn-sync" onclick="switchAdminTab('sync')" class="px-4 py-3 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-file-excel text-emerald-600"></i> 試算表串接設定
                     </button>
                 </div>
                 <div class="flex items-center gap-2 pb-2">
-                    <button onclick="fetchAdminData()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-arrows-rotate"></i> 從試算表重新抓取數據
+                    <button onclick="fetchAdminData()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate"></i> 重新載入數據
                     </button>
                 </div>
             </div>
 
-            <!-- Tab Content Container -->
-            <div class="p-4 sm:p-6 overflow-y-auto flex-grow bg-slate-50/70">
+            <!-- Tab Content Container (Full Height Scrollable) -->
+            <div class="p-4 sm:p-8 overflow-y-auto flex-grow bg-slate-100">
                 <!-- Tab 1: Google Forms Style Analytics Dashboard -->
-                <div id="admin-tab-content-analytics" class="space-y-6">
+                <div id="admin-tab-content-analytics" class="max-w-5xl mx-auto space-y-6 pb-12">
                     <div id="analytics-container" class="space-y-6">
-                        <div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-indigo-500"></i>
-                            <div>正在從 Google 試算表計算統計圖表...</div>
+                        <div class="p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                            <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-indigo-500"></i>
+                            <div class="text-sm font-bold">正在讀取並計算 Google 表單風格統計數據...</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tab 2: Detailed Records Table -->
-                <div id="admin-tab-content-table" class="hidden">
-                    <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
-                        <table class="w-full text-left text-xs text-slate-700">
-                            <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
-                                <tr>
-                                    <th class="p-3">提交時間</th>
-                                    <th class="p-3">受測者姓名</th>
-                                    <th class="p-3">Email / 帳號</th>
-                                    <th class="p-3">第一階段依附類型</th>
-                                    <th class="p-3">第二階段分類</th>
-                                    <th class="p-3">第二階段回答細項</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-table-body" class="divide-y divide-slate-100">
-                                <tr>
-                                    <td colspan="6" class="p-8 text-center text-slate-400">
-                                        <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
-                                        <div>資料讀取中...</div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Tab 2: Detailed Records Table with Delete Feature -->
+                <div id="admin-tab-content-table" class="max-w-6xl mx-auto hidden pb-12">
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-base">受測者詳細提交紀錄</h4>
+                                <p class="text-xs text-slate-500">您可以檢視每位同學的作答明細，或點選刪除按鈕移除特定測試資料。</p>
+                            </div>
+                            <span class="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-full border border-indigo-100">
+                                共 <span id="table-record-count">0</span> 筆資料
+                            </span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs sm:text-sm text-slate-700">
+                                <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200 text-[11px]">
+                                    <tr>
+                                        <th class="p-3.5">提交時間</th>
+                                        <th class="p-3.5">受測者姓名</th>
+                                        <th class="p-3.5">Email / 帳號</th>
+                                        <th class="p-3.5">性別 / 學制</th>
+                                        <th class="p-3.5">第一階段依附類型</th>
+                                        <th class="p-3.5">第二階段分類</th>
+                                        <th class="p-3.5 text-center">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-table-body" class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td colspan="7" class="p-10 text-center text-slate-400">
+                                            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+                                            <div>資料讀取中...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Tab 3: Google Sheets Real-time Auto-Sync Configuration -->
-                <div id="admin-tab-content-sync" class="hidden space-y-4">
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div id="admin-tab-content-sync" class="max-w-4xl mx-auto hidden space-y-6 pb-12">
+                    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
                         <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xl">
                                 <i class="fa-solid fa-link"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-800 text-base">Google 試算表與後台串接設定</h4>
-                                <p class="text-xs text-slate-500">填入您的 Google 試算表網址與 Apps Script 網頁應用程式網址，實現「送出後自動開表單」及「後台從試算表抓數據」！</p>
+                                <h4 class="font-bold text-slate-800 text-lg">Google 試算表與後台串接設定</h4>
+                                <p class="text-xs text-slate-500">填入您的 Google 試算表網址與 Apps Script 網頁應用程式網址，實現資料同步！</p>
                             </div>
                         </div>
 
-                        <div class="space-y-4 text-xs text-slate-600">
+                        <div class="space-y-4 text-xs sm:text-sm text-slate-600">
                             <div>
                                 <label class="block font-bold text-slate-700 mb-1">1. Google 試算表編輯網址 (Google Sheet URL - 供送出後自動跳轉用)</label>
-                                <input type="text" id="sheets-edit-url" placeholder="https://docs.google.com/spreadsheets/d/1BxiM.../edit" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
+                                <input type="text" id="sheets-edit-url" placeholder="https://docs.google.com/spreadsheets/d/1BxiM.../edit" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
                             </div>
 
                             <div>
                                 <label class="block font-bold text-slate-700 mb-1">2. Google Apps Script 網頁應用程式網址 (Web App URL - 供送出寫入及後台抓取數據用)</label>
                                 <div class="flex gap-2">
-                                    <input type="text" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="flex-grow px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
-                                    <button onclick="saveWebhookUrl()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition cursor-pointer shrink-0">
+                                    <input type="text" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="flex-grow px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
+                                    <button onclick="saveWebhookUrl()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition cursor-pointer shrink-0">
                                         儲存設定
                                     </button>
                                 </div>
-                            </div>
-
-                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                                <h5 class="font-bold text-slate-800 flex items-center gap-2 text-xs sm:text-sm">
-                                    <i class="fa-solid fa-list-ol text-indigo-500"></i> Apps Script 完整程式碼（支援寫入與後台讀取）：
-                                </h5>
-                                <p class="text-slate-500">請確保您的 Apps Script 包含 <strong>doPost(e)</strong> 與 <strong>doGet(e)</strong>，並將「誰可以存取」設為 <strong>所有人 (Anyone)</strong>。</p>
-                            </div>
-
-                            <div class="bg-slate-900 text-slate-200 p-4 rounded-xl font-mono text-[11px] relative overflow-hidden">
-                                <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
-                                    <span class="text-amber-400 font-bold">📄 複製下方代碼貼至 Google Apps Script：</span>
-                                    <button onclick="copyAppsScriptCode()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs font-sans rounded-lg transition cursor-pointer">
-                                        <i class="fa-solid fa-copy mr-1"></i> 一鍵複製 Apps Script 代碼
-                                    </button>
-                                </div>
-                                <pre id="apps-script-code" class="overflow-x-auto whitespace-pre-wrap leading-relaxed text-emerald-300">
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["提交時間", "受測者姓名", "Email/帳號", "第一階段依附類型", "第二階段分類", "第二階段回答細項"]);
-  }
-  
-  var s2Ans = Array.isArray(data.stage2Answers) ? data.stage2Answers.map(function(a, i){ return "Q"+(i+1)+":"+a; }).join(", ") : "";
-  
-  sheet.appendRow([
-    data.submittedAt || new Date().toLocaleString(),
-    data.userName || "未命名",
-    data.userEmail || "無",
-    data.dominantType || "",
-    data.stage2Category || "",
-    s2Ans
-  ]);
-  
-  return ContentService.createTextOutput(JSON.stringify({"result": "success"}))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var rows = sheet.getDataRange().getValues();
-  if (rows.length === 0) {
-    return ContentService.createTextOutput(JSON.stringify([]))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var headers = rows.shift(); // remove header
-  var data = rows.map(function(row) {
-    return {
-      submittedAt: row[0] || "",
-      userName: row[1] || "未命名",
-      userEmail: row[2] || "無",
-      dominantType: row[3] || "secure",
-      stage2Category: row[4] || "",
-      stage2Answers: row[5] ? row[5].split(", ").map(function(item){ return item.indexOf(":") !== -1 ? item.split(":")[1] : item; }) : []
-    };
-  });
-  
-  return ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-}</pre>
                             </div>
                         </div>
                     </div>
@@ -1170,7 +1119,7 @@ function doGet(e) {
         }
 
         async function submitFinalResults() {
-            showToast("正在將資料寫入 Google 試算表...");
+            showToast("正在將測驗結果儲存至資料庫...");
             
             const submitData = {
                 userEmail: mockUserProfile.email,
@@ -1181,8 +1130,14 @@ function doGet(e) {
                 dominantType: attachmentTypeData[dominantType]?.name || dominantType,
                 scores: calculatedScores,
                 stage2Category: dominantType === 'anxiety' ? 'Category 2 (Anxious)' : 'Category 1 (Non-Anxious)',
+                answers: answers,
                 stage2Answers: stage2Answers
             };
+
+            // Save to LocalStorage for robust offline & local testing / admin view
+            let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
+            localRecords.push(submitData);
+            localStorage.setItem('attachment_local_submissions', JSON.stringify(localRecords));
 
             if(googleSheetsWebhookUrl) {
                 try {
@@ -1200,7 +1155,6 @@ function doGet(e) {
             document.getElementById('stage2-quiz-card').classList.add('hidden');
             document.getElementById('stage2-result-card').classList.remove('hidden');
             
-            // Automatically open Google Sheet if edit URL is provided
             if(googleSheetsEditUrl) {
                 window.open(googleSheetsEditUrl, '_blank');
             }
@@ -1212,6 +1166,19 @@ function doGet(e) {
             } else {
                 showToast("尚未設定 Google 試算表編輯網址，請至後台填寫");
             }
+        }
+
+        function saveWebhookUrl() {
+            const webhookInput = document.getElementById('sheets-webhook-url').value.trim();
+            const editInput = document.getElementById('sheets-edit-url').value.trim();
+            
+            googleSheetsWebhookUrl = webhookInput;
+            googleSheetsEditUrl = editInput;
+            
+            localStorage.setItem('attachment_webhook_url', webhookInput);
+            localStorage.setItem('attachment_sheet_url', editInput);
+            
+            showToast("Google 試算表與 Webhook 設定已成功儲存！");
         }
 
         function restartQuiz() {
@@ -1259,60 +1226,76 @@ function doGet(e) {
         }
 
         async function fetchAdminData() {
-            if(!googleSheetsWebhookUrl) {
-                showToast("尚未設定 Google Apps Script 網址，請至「試算表串接設定」填寫");
-                switchAdminTab('sync');
-                return;
-            }
-            
             const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>正在從 Google 試算表抓取數據中...</div></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>正在載入受測紀錄...</div></td></tr>`;
 
             try {
-                const response = await fetch(googleSheetsWebhookUrl);
-                const data = await response.json();
+                let records = [];
+                // Load from LocalStorage first
+                let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
+                records = [...localRecords];
+
+                // If webhook is provided, try fetching remote as well
+                if(googleSheetsWebhookUrl) {
+                    try {
+                        const response = await fetch(googleSheetsWebhookUrl);
+                        const remoteData = await response.json();
+                        if(Array.isArray(remoteData) && remoteData.length > 0) {
+                            records = remoteData;
+                        }
+                    } catch(err) {
+                        console.log("Remote fetch fallback to local", err);
+                    }
+                }
+
+                adminFetchedRecords = records;
                 
-                adminFetchedRecords = [];
                 let counts = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
                 let anxiousCount = 0;
                 let nonAnxiousCount = 0;
 
-                if(Array.isArray(data)) {
-                    data.forEach((row, idx) => {
-                        let dType = row.dominantType || '';
-                        let internalKey = 'secure';
-                        if(dType.includes('焦慮')) { internalKey = 'anxiety'; anxiousCount++; }
-                        else if(dType.includes('安全')) { internalKey = 'secure'; nonAnxiousCount++; }
-                        else if(dType.includes('逃避')) { internalKey = 'avoidance'; nonAnxiousCount++; }
-                        else if(dType.includes('恐懼')) { internalKey = 'fearful'; nonAnxiousCount++; }
-                        else { nonAnxiousCount++; }
+                adminFetchedRecords.forEach((row) => {
+                    let dType = row.dominantType || '';
+                    let internalKey = 'secure';
+                    if(dType.includes('焦慮')) { internalKey = 'anxiety'; anxiousCount++; }
+                    else if(dType.includes('安全')) { internalKey = 'secure'; nonAnxiousCount++; }
+                    else if(dType.includes('逃避')) { internalKey = 'avoidance'; nonAnxiousCount++; }
+                    else if(dType.includes('恐懼')) { internalKey = 'fearful'; nonAnxiousCount++; }
+                    else { nonAnxiousCount++; }
 
-                        if(counts[internalKey] !== undefined) counts[internalKey]++;
-
-                        adminFetchedRecords.push({
-                            submittedAt: row.submittedAt || '',
-                            userName: row.userName || '未命名',
-                            userEmail: row.userEmail || '無',
-                            dominantType: dType,
-                            internalKey: internalKey,
-                            stage2Category: row.stage2Category || '',
-                            stage2Answers: row.stage2Answers || []
-                        });
-                    });
-                }
+                    if(counts[internalKey] !== undefined) counts[internalKey]++;
+                });
 
                 document.getElementById('admin-stat-total').innerText = `${adminFetchedRecords.length} 份`;
                 document.getElementById('admin-record-count').innerText = adminFetchedRecords.length;
+                document.getElementById('table-record-count').innerText = adminFetchedRecords.length;
                 document.getElementById('admin-stat-anxious').innerText = `${anxiousCount} 人`;
                 document.getElementById('admin-stat-nonanxious').innerText = `${nonAnxiousCount} 人`;
 
                 renderAdminTable();
-                renderAnalytics(counts);
+                renderGoogleFormsStyleAnalytics(adminFetchedRecords, counts);
 
             } catch(e) {
                 console.error(e);
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-500">無法從試算表讀取資料，請確認 Apps Script 是否支援 doGet(e) 且已重新部署為「所有人」存取</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-rose-500">載入資料發生錯誤</td></tr>`;
             }
+        }
+
+        function deleteRecord(index) {
+            if(!confirm("確定要刪除這筆受測資料嗎？")) return;
+            
+            // Delete from local records
+            let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
+            // Assuming index corresponds to the reversed or direct array
+            let targetIndex = adminFetchedRecords.length - 1 - index;
+            if(localRecords[targetIndex]) {
+                localRecords.splice(targetIndex, 1);
+                localStorage.setItem('attachment_local_submissions', JSON.stringify(localRecords));
+            }
+            
+            adminFetchedRecords.splice(targetIndex, 1);
+            showToast("資料已成功刪除");
+            fetchAdminData();
         }
 
         function renderAdminTable() {
@@ -1320,31 +1303,36 @@ function doGet(e) {
             tbody.innerHTML = '';
             
             if(adminFetchedRecords.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">試算表中尚無問卷資料</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400">尚無任何受測紀錄</td></tr>`;
                 return;
             }
 
-            adminFetchedRecords.slice().reverse().forEach(record => {
+            adminFetchedRecords.slice().reverse().forEach((record, revIdx) => {
                 const tr = document.createElement('tr');
                 const catBadge = record.stage2Category && record.stage2Category.includes('Anxious') ? 
-                    '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold">二類(焦慮)</span>' : 
-                    '<span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded font-bold">一類(非焦慮)</span>';
+                    '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold text-xs">二類(焦慮)</span>' : 
+                    '<span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded font-bold text-xs">一類(非焦慮)</span>';
                 
-                const s2Text = Array.isArray(record.stage2Answers) ? record.stage2Answers.join(", ") : record.stage2Answers;
+                const genderLevel = (record.gender || '未填') + ' / ' + (record.schoolLevel || '未填');
 
                 tr.innerHTML = `
-                    <td class="p-3 text-slate-500">${record.submittedAt}</td>
-                    <td class="p-3 font-medium text-slate-800">${record.userName}</td>
-                    <td class="p-3">${record.userEmail}</td>
-                    <td class="p-3 font-semibold text-rose-500">${record.dominantType}</td>
-                    <td class="p-3">${catBadge}</td>
-                    <td class="p-3 text-slate-500 max-w-xs truncate" title="${s2Text}">${s2Text}</td>
+                    <td class="p-3.5 text-slate-500 whitespace-nowrap">${record.submittedAt || '剛剛'}</td>
+                    <td class="p-3.5 font-bold text-slate-800">${record.userName || '未命名'}</td>
+                    <td class="p-3.5 text-slate-500">${record.userEmail || '無'}</td>
+                    <td class="p-3.5 text-slate-600">${genderLevel}</td>
+                    <td class="p-3.5 font-semibold text-rose-500">${record.dominantType}</td>
+                    <td class="p-3.5">${catBadge}</td>
+                    <td class="p-3.5 text-center">
+                        <button onclick="deleteRecord(${revIdx})" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition cursor-pointer">
+                            <i class="fa-solid fa-trash mr-1"></i> 刪除
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function renderAnalytics(counts) {
+        function renderGoogleFormsStyleAnalytics(records, counts) {
             const container = document.getElementById('analytics-container');
             container.innerHTML = '';
 
@@ -1353,71 +1341,133 @@ function doGet(e) {
                 adminCharts = [];
             }
 
-            if(adminFetchedRecords.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm">目前試算表中尚無足夠資料以產生統計圖表</div>`;
+            if(records.length === 0) {
+                container.innerHTML = `<div class="p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">目前尚無足夠的填答數據以產生 Google 表單風格分析圖表</div>`;
                 return;
             }
 
-            // 1. Bar Chart
+            // Summary Card 1: Attachment Style Distribution (Google Forms Style)
+            const total = records.length;
             const card1 = document.createElement('div');
-            card1.className = 'bg-white p-6 rounded-2xl border border-slate-200 shadow-sm';
+            card1.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
             card1.innerHTML = `
-                <h4 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-bar text-indigo-500"></i> 第一階段依附類型分佈統計 (來自 Google 試算表)
-                </h4>
-                <div class="relative w-full h-64 flex items-center justify-center">
-                    <canvas id="adminChartStyle"></canvas>
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">SUMMARY OVERVIEW</span>
+                    <h3 class="text-xl font-bold text-slate-800 mt-1">第一階段：依附類型總體分佈</h3>
+                    <p class="text-xs text-slate-400">共計 ${total} 位受測者的核心依附傾向統計</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
+                    <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+                        <div class="text-xs font-bold text-emerald-800 mb-1">安全型 (Secure)</div>
+                        <div class="text-2xl font-black text-emerald-600">${counts.secure || 0} <span class="text-xs font-normal text-slate-500">(${Math.round(((counts.secure||0)/total)*100)}%)</span></div>
+                    </div>
+                    <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-100">
+                        <div class="text-xs font-bold text-amber-800 mb-1">焦慮型 (Anxious)</div>
+                        <div class="text-2xl font-black text-amber-600">${counts.anxiety || 0} <span class="text-xs font-normal text-slate-500">(${Math.round(((counts.anxiety||0)/total)*100)}%)</span></div>
+                    </div>
+                    <div class="bg-sky-50/70 p-4 rounded-2xl border border-sky-100">
+                        <div class="text-xs font-bold text-sky-800 mb-1">逃避型 (Avoidant)</div>
+                        <div class="text-2xl font-black text-sky-600">${counts.avoidance || 0} <span class="text-xs font-normal text-slate-500">(${Math.round(((counts.avoidance||0)/total)*100)}%)</span></div>
+                    </div>
+                    <div class="bg-purple-50/70 p-4 rounded-2xl border border-purple-100">
+                        <div class="text-xs font-bold text-purple-800 mb-1">恐懼矛盾型 (Fearful)</div>
+                        <div class="text-2xl font-black text-purple-600">${counts.fearful || 0} <span class="text-xs font-normal text-slate-500">(${Math.round(((counts.fearful||0)/total)*100)}%)</span></div>
+                    </div>
                 </div>
             `;
             container.appendChild(card1);
 
-            const ctx1 = document.getElementById('adminChartStyle').getContext('2d');
-            const chart1 = new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: ['安全型', '焦慮型', '逃避型', '恐懼矛盾型'],
-                    datasets: [{
-                        label: '人數',
-                        data: [counts.secure || 0, counts.anxiety || 0, counts.avoidance || 0, counts.fearful || 0],
-                        backgroundColor: ['#10b981', '#f59e0b', '#0ea5e9', '#8b5cf6'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                        x: { grid: { display: false } }
-                    }
-                }
+            // Demographic Breakdown Card
+            let genderCounts = { '男': 0, '女': 0, '其他': 0, '不願透露': 0 };
+            let levelCounts = { '國中': 0, '高中': 0 };
+            records.forEach(r => {
+                if(genderCounts[r.gender] !== undefined) genderCounts[r.gender]++;
+                if(levelCounts[r.schoolLevel] !== undefined) levelCounts[r.schoolLevel]++;
             });
-            adminCharts.push(chart1);
-        }
 
-        function saveWebhookUrl() {
-            const webhookUrl = document.getElementById('sheets-webhook-url').value.trim();
-            const editUrl = document.getElementById('sheets-edit-url').value.trim();
-            
-            googleSheetsWebhookUrl = webhookUrl;
-            googleSheetsEditUrl = editUrl;
-            
-            localStorage.setItem('attachment_webhook_url', webhookUrl);
-            localStorage.setItem('attachment_sheet_url', editUrl);
-            
-            showToast("Google 試算表串接設定已成功儲存！");
-        }
+            const cardDemo = document.createElement('div');
+            cardDemo.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
+            cardDemo.innerHTML = `
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">DEMOGRAPHICS</span>
+                    <h3 class="text-xl font-bold text-slate-800 mt-1">基本資料統計</h3>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
+                        <h4 class="font-bold text-slate-700 text-sm">性別分佈</h4>
+                        <div class="space-y-2 text-xs">
+                            ${Object.entries(genderCounts).map(([k, v]) => `
+                                <div>
+                                    <div class="flex justify-between font-bold text-slate-700 mb-1"><span>${k}</span><span>${v} 人 (${Math.round((v/total)*100)}%)</span></div>
+                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden"><div class="bg-indigo-500 h-2 rounded-full" style="width: ${total>0?(v/total)*100:0}%"></div></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
+                        <h4 class="font-bold text-slate-700 text-sm">學制分佈</h4>
+                        <div class="space-y-2 text-xs">
+                            ${Object.entries(levelCounts).map(([k, v]) => `
+                                <div>
+                                    <div class="flex justify-between font-bold text-slate-700 mb-1"><span>${k}</span><span>${v} 人 (${Math.round((v/total)*100)}%)</span></div>
+                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden"><div class="bg-rose-400 h-2 rounded-full" style="width: ${total>0?(v/total)*100:0}%"></div></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(cardDemo);
 
-        function copyAppsScriptCode() {
-            const codeText = document.getElementById('apps-script-code').innerText;
-            const tempInput = document.createElement('textarea');
-            tempInput.value = codeText;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            showToast("Apps Script 代碼已成功複製到剪貼簿！");
+            // Google Forms Style Question-by-Question Breakdown Cards (16 Questions)
+            questions.forEach((qObj, qIdx) => {
+                // Tally 1-5 responses for this question
+                let optCounts = [0, 0, 0, 0, 0]; // for scores 1, 2, 3, 4, 5
+                let totalAnswered = 0;
+
+                records.forEach(r => {
+                    if(Array.isArray(r.answers) && r.answers[qIdx] !== null && r.answers[qIdx] !== undefined) {
+                        let val = parseInt(r.answers[qIdx]);
+                        if(val >= 1 && val <= 5) {
+                            optCounts[val - 1]++;
+                            totalAnswered++;
+                        }
+                    }
+                });
+
+                const qCard = document.createElement('div');
+                qCard.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
+                
+                const optLabels = ['1 (非常不符合)', '2 (不符合)', '3 (普通)', '4 (符合)', '5 (非常符合)'];
+                
+                qCard.innerHTML = `
+                    <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <span class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full font-bold text-xs">第 ${qIdx + 1} 題 (${qObj.name})</span>
+                            <h4 class="font-bold text-slate-800 text-base sm:text-lg mt-2">${qObj.text}</h4>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-400 shrink-0 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">已填答: ${totalAnswered} 份</span>
+                    </div>
+                    <div class="space-y-3 pt-2">
+                        ${optLabels.map((label, oIdx) => {
+                            let count = optCounts[oIdx];
+                            let pct = totalAnswered > 0 ? Math.round((count / totalAnswered) * 100) : 0;
+                            return `
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-xs font-semibold text-slate-600">
+                                        <span>${label}</span>
+                                        <span>${count} 票 (${pct}%)</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200/60">
+                                        <div class="bg-indigo-500 h-3 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                container.appendChild(qCard);
+            });
         }
     </script>
 </body>
