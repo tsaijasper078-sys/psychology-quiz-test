@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chart.js CDN for Radar Chart -->
+    <!-- Chart.js CDN for Radar Chart and Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script type="module">
@@ -42,16 +42,6 @@
         window.firebaseDb = db;
         window.googleProvider = googleProvider;
         window.appId = appId;
-        window.signInWithPopup = signInWithPopup;
-        window.signOut = signOut;
-        window.doc = doc;
-        window.getDoc = getDoc;
-        window.setDoc = setDoc;
-        window.addDoc = addDoc;
-        window.deleteDoc = deleteDoc;
-        window.collection = collection;
-        window.getDocs = getDocs;
-        window.onAuthStateChanged = onAuthStateChanged;
     </script>
 
     <style>
@@ -82,7 +72,6 @@
 
     <main class="max-w-3xl mx-auto w-full flex-grow flex flex-col justify-center">
 
-        <!-- Intro Card -->
         <div id="intro-card" class="bg-white rounded-3xl p-6 sm:p-10 card-shadow text-center border border-rose-100 block">
             <!-- Top Identity Status & Login Bar -->
             <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
@@ -94,12 +83,12 @@
                         </div>
                         <div>
                             <div class="font-bold text-slate-800 text-sm">請先完成身分驗證</div>
-                            <div class="text-xs text-slate-500">專題學術調查防重複填寫機制：填寫前須驗證身份</div>
+                            <div class="text-xs text-slate-500">防重複填寫機制：管理員請輸入 12345678，受測者須輸入完整 Gmail 帳號</div>
                         </div>
                     </div>
                     <button onclick="handleGoogleLogin()" class="w-full sm:w-auto px-5 py-2.5 bg-white border border-slate-200 hover:border-rose-400 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition text-xs flex items-center justify-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-                        Google / 信箱驗證登入
+                        Google / Gmail 登入驗證
                     </button>
                 </div>
 
@@ -111,15 +100,15 @@
                             <div class="flex items-center gap-2">
                                 <span id="user-name" class="font-bold text-slate-800 text-sm">使用者</span>
                                 <span id="user-status-tag" class="text-[11px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md font-semibold border border-emerald-100 flex items-center gap-1">
-                                    <i class="fa-solid fa-circle-check"></i> 已完成驗證
+                                    <i class="fa-solid fa-circle-check"></i> 已驗證 Gmail
                                 </span>
                             </div>
-                            <div class="text-xs text-slate-400">已啟用防重複提交護欄</div>
+                            <div class="text-xs text-slate-400">已啟用防重複提交保護</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
                         <button id="admin-dashboard-btn" onclick="openAdminDashboard()" class="hidden text-xs text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-chart-line"></i> 後台看板 (從試算表抓取)
+                            <i class="fa-solid fa-chart-line"></i> 後台看板 (從試算表抓取數據)
                         </button>
                         <button onclick="handleSignOut()" class="text-xs text-slate-500 hover:text-rose-500 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:border-rose-200 bg-white transition cursor-pointer">
                             <i class="fa-solid fa-right-from-bracket mr-1"></i> 切換帳號
@@ -133,7 +122,7 @@
                 <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl mt-0.5 shrink-0"></i>
                 <div>
                     <div class="font-bold text-amber-950 mb-0.5">您已完成過本專題問卷</div>
-                    <p class="leading-relaxed text-amber-800">為確保研究數據之公平性與學術品質，每人僅限填寫一次。系統已登記您的問卷結果，感謝您的協助！</p>
+                    <p class="leading-relaxed text-amber-800">根據您的 Gmail 記錄，每人僅限填寫一次，以確保研究數據公平性。系統已記錄您的回覆！</p>
                 </div>
             </div>
 
@@ -146,16 +135,15 @@
                 <p class="font-bold text-slate-800 text-sm">各位同學好，</p>
                 <p>日常中我們常會遇到困境，然而有些人選擇迴避或把它視為一切焦慮來源，這些因素甚至影響到了同儕關係。如今面臨這樣的遭遇的青少年，愈來愈多。不知道正在填表單的你們是否也遇到過相同的情況呢?</p>
                 <p>我們是明道中學應用英語科的專題製作團隊，我們希望透過這份問卷，能夠探討類似的案例。並分析同儕關係的心理密碼到底怎麼解決。</p>
-                <p>本問卷包含兩個階段，問卷中包含日常以及心理感受，本問卷依完全匿名的形式，統計結果均以圖表呈現，絕不公開隱私訊息，請放心填寫，填答時間約3-5分鐘。</p>
+                <p>本問卷包含兩個階段，作答結果將直接寫入 Google 試算表並進行分析，依完全匿名的形式呈現，絕不公開隱私訊息，請放心填寫，填答時間約 3-5 分鐘。</p>
                 <p class="font-bold text-rose-500 pt-1">由衷感謝幫忙填寫問卷的同學，每份回覆都對我們至關重要!</p>
             </div>
 
             <button id="start-btn" onclick="startQuiz()" class="w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer opacity-50 cursor-not-allowed" disabled>
-                請先登入以開始測驗 <i class="fa-solid fa-lock ml-2"></i>
+                請先登入 Gmail 以開始測驗 <i class="fa-solid fa-lock ml-2"></i>
             </button>
         </div>
 
-        <!-- Quiz Card Stage 1 -->
         <div id="quiz-card" class="hidden bg-white rounded-3xl p-6 sm:p-8 card-shadow border border-rose-100">
             <div class="mb-6">
                 <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
@@ -185,21 +173,11 @@
             </div>
 
             <div class="grid grid-cols-5 gap-2 sm:gap-3 mb-6">
-                <button onclick="selectOption(1)" id="opt-1" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none">
-                    <span>1</span>
-                </button>
-                <button onclick="selectOption(2)" id="opt-2" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none">
-                    <span>2</span>
-                </button>
-                <button onclick="selectOption(3)" id="opt-3" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none">
-                    <span>3</span>
-                </button>
-                <button onclick="selectOption(4)" id="opt-4" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none">
-                    <span>4</span>
-                </button>
-                <button onclick="selectOption(5)" id="opt-5" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none">
-                    <span>5</span>
-                </button>
+                <button onclick="selectOption(1)" id="opt-1" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none"><span>1</span></button>
+                <button onclick="selectOption(2)" id="opt-2" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none"><span>2</span></button>
+                <button onclick="selectOption(3)" id="opt-3" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none"><span>3</span></button>
+                <button onclick="selectOption(4)" id="opt-4" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none"><span>4</span></button>
+                <button onclick="selectOption(5)" id="opt-5" class="option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none"><span>5</span></button>
             </div>
 
             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
@@ -213,17 +191,14 @@
             </div>
         </div>
 
-        <!-- Result Card Stage 1 -->
         <div id="result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
             <div class="text-center">
                 <div id="result-icon-bg" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 text-3xl shadow-sm">
                 </div>
 
                 <p class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1">YOUR ATTACHMENT STYLE</p>
-                <h2 id="result-type" class="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
-                </h2>
-                <p id="result-subtitle" class="text-sm font-medium text-rose-500 mb-6">
-                </p>
+                <h2 id="result-type" class="text-2xl sm:text-3xl font-bold text-slate-800 mb-2"></h2>
+                <p id="result-subtitle" class="text-sm font-medium text-rose-500 mb-6"></p>
             </div>
 
             <!-- Radar Chart Area -->
@@ -271,7 +246,7 @@
                 </div>
             </div>
 
-            <!-- Stage 2 Call to Action - Highly Prominent Banner & Button -->
+            <!-- Stage 2 CTA Banner -->
             <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 rounded-3xl p-6 text-white text-center shadow-xl mb-6 relative overflow-hidden">
                 <div class="relative z-10">
                     <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block mb-2 backdrop-blur-sm">
@@ -284,15 +259,8 @@
                     </button>
                 </div>
             </div>
-
-            <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onclick="restartQuiz()" class="hidden w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-full transition text-sm">
-                    <i class="fa-solid fa-rotate-right mr-1.5"></i> 重新測驗
-                </button>
-            </div>
         </div>
 
-        <!-- Stage 2 Quiz Card -->
         <div id="stage2-quiz-card" class="hidden bg-white rounded-3xl p-6 sm:p-8 card-shadow border border-indigo-100">
             <div class="mb-6">
                 <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
@@ -315,9 +283,7 @@
                 </h3>
             </div>
 
-            <!-- Dynamic Options Container -->
-            <div id="s2-options-container" class="mb-6 flex flex-col gap-3">
-            </div>
+            <div id="s2-options-container" class="mb-6 flex flex-col gap-3"></div>
 
             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
                 <button id="s2-prev-btn" onclick="prevStage2Question()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center invisible">
@@ -330,7 +296,6 @@
             </div>
         </div>
 
-        <!-- Stage 2 Submission Completed Card -->
         <div id="stage2-result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-emerald-100 text-center">
             <div class="w-20 h-20 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 text-3xl shadow-sm">
                 <i class="fa-solid fa-circle-check"></i>
@@ -338,25 +303,15 @@
             
             <p class="text-xs font-bold tracking-widest text-emerald-600 uppercase mb-1">SURVEY COMPLETED</p>
             <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-3">
-                問卷數據已成功送出並同步至 Google 試算表！
+                問卷數據已成功送出並直接寫入 Google 試算表！
             </h2>
             <p class="text-sm font-medium text-slate-500 mb-6 max-w-md mx-auto">
-                非常感謝您撥冗協助我們完成本次專題研究的數據蒐集 ✨ 系統已自動幫您開啟 Google 試算表。
+                感謝您協助本專題研究 ✨ 您的作答資料已同步記錄至遠端 Google 試算表中，後台看板將直接從該試算表抓取數據進行 Google 表單風格分析。
             </p>
-
-            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-left space-y-3 mb-8 max-w-lg mx-auto text-xs sm:text-sm text-slate-600 leading-relaxed">
-                <div class="flex items-start gap-2.5">
-                    <i class="fa-solid fa-file-excel text-emerald-600 text-base mt-0.5"></i>
-                    <div>
-                        <strong class="text-slate-800 block mb-0.5">Google 試算表即時記錄：</strong>
-                        您的作答結果已直接寫入您專屬的 Google 試算表中，後台看板隨時讀取該試算表進行統計。
-                    </div>
-                </div>
-            </div>
 
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onclick="openGoogleSheetFromCompletion()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-full shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-file-excel"></i> 前往 Google 試算表查看
+                    <i class="fa-solid fa-file-excel"></i> 開啟 Google 試算表
                 </button>
                 <button onclick="location.reload()" class="px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-full shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-house"></i> 返回首頁
@@ -366,7 +321,6 @@
 
     </main>
 
-    <!-- Google Quick Login Modal -->
     <div id="google-login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-left">
             <div class="flex items-center gap-3 mb-4">
@@ -374,19 +328,19 @@
                     <svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-lg">身分驗證與管理員登入</h3>
-                    <p class="text-xs text-slate-400">受測者請輸入信箱或名字 / 管理員輸入 12345678</p>
+                    <h3 class="font-bold text-slate-800 text-lg">身分與 Gmail 驗證登入</h3>
+                    <p class="text-xs text-slate-400">管理員請輸入 12345678｜一般受測者請輸入完整 Gmail 帳號</p>
                 </div>
             </div>
 
             <form onsubmit="confirmGoogleQuickLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">您的 信箱 或 管理員密碼</label>
-                    <input type="text" id="modal-google-email" required placeholder="例如：example@gmail.com 或直接輸入暱稱" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">管理員密碼 或 完整 Gmail 帳號</label>
+                    <input type="text" id="modal-google-email" required placeholder="例如：yourname@gmail.com 或 12345678" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">顯示姓名 / 暱稱 (選填)</label>
-                    <input type="text" id="modal-google-name" placeholder="例如：張同學" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">您的姓名 / 暱稱 (選填)</label>
+                    <input type="text" id="modal-google-name" placeholder="例如：王小明" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
                 </div>
 
                 <div class="flex gap-2 pt-2">
@@ -394,14 +348,13 @@
                         取消
                     </button>
                     <button type="submit" class="w-1/2 py-2.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full text-xs shadow-md transition cursor-pointer">
-                        確認並繼續
+                        驗證並登入
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Demographic Intro Card (Before Quiz) -->
     <div id="demographic-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
         <div class="inline-block bg-rose-50 text-rose-500 font-semibold text-xs px-3 py-1 rounded-full mb-3">
             基本基本資料填寫
@@ -409,7 +362,6 @@
         <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">請先回答以下 2 項基本資料</h2>
         
         <div class="space-y-6 text-left mb-8">
-            <!-- Question 1: Gender -->
             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                 <label class="block text-sm font-bold text-slate-800 mb-3">1. 您的性別：</label>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -420,7 +372,6 @@
                 </div>
             </div>
 
-            <!-- Question 2: School Level -->
             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                 <label class="block text-sm font-bold text-slate-800 mb-3">2. 您的學制：</label>
                 <div class="grid grid-cols-2 gap-3">
@@ -440,7 +391,6 @@
         </div>
     </div>
 
-    <!-- Admin Dashboard Modal (Full Screen & Zero Clipping) -->
     <div id="admin-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-0 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-slate-50 w-screen h-screen flex flex-col overflow-hidden text-left shadow-2xl">
             
@@ -451,7 +401,7 @@
                         <i class="fa-solid fa-chart-line text-white"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-base sm:text-lg">專題研究後台分析看板 (Google 表單風格分析)</h3>
+                        <h3 class="font-bold text-base sm:text-lg">專題研究後台分析看板 (Google 試算表即時抓取與 Google 表單風格分析)</h3>
                         <p class="text-xs text-slate-400">明道中學應用英語科專題研究團隊專用管理介面</p>
                     </div>
                 </div>
@@ -486,35 +436,35 @@
                         <i class="fa-solid fa-list-check"></i> 詳細受測紀錄 (<span id="admin-record-count">0</span>)
                     </button>
                     <button id="tab-btn-sync" onclick="switchAdminTab('sync')" class="px-4 py-3 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-file-excel text-emerald-600"></i> 試算表串接設定
+                        <i class="fa-solid fa-file-excel text-emerald-600"></i> 試算表串接與抓取設定
                     </button>
                 </div>
                 <div class="flex items-center gap-2 pb-2">
-                    <button onclick="fetchAdminData()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-arrows-rotate"></i> 重新載入數據
+                    <button onclick="fetchDataFromSpreadsheet()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate"></i> 從試算表重新抓取數據
                     </button>
                 </div>
             </div>
 
-            <!-- Tab Content Container (Full Height Scrollable) -->
+            <!-- Tab Content Container -->
             <div class="p-4 sm:p-8 overflow-y-auto flex-grow bg-slate-100">
                 <!-- Tab 1: Google Forms Style Analytics Dashboard -->
                 <div id="admin-tab-content-analytics" class="max-w-5xl mx-auto space-y-6 pb-12">
                     <div id="analytics-container" class="space-y-6">
                         <div class="p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">
                             <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-indigo-500"></i>
-                            <div class="text-sm font-bold">正在讀取並計算 Google 表單風格統計數據...</div>
+                            <div class="text-sm font-bold">正在從 Google 試算表抓取數據並計算分析...</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tab 2: Detailed Records Table with Delete Feature -->
+                <!-- Tab 2: Detailed Records Table -->
                 <div id="admin-tab-content-table" class="max-w-6xl mx-auto hidden pb-12">
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                         <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                             <div>
-                                <h4 class="font-bold text-slate-800 text-base">受測者詳細提交紀錄</h4>
-                                <p class="text-xs text-slate-500">您可以檢視每位同學的作答明細，或點選刪除按鈕移除特定測試資料。</p>
+                                <h4 class="font-bold text-slate-800 text-base">試算表同步之受測詳細紀錄</h4>
+                                <p class="text-xs text-slate-500">此資料來自 Google 試算表即時讀取，您可以檢視各筆作答明細。</p>
                             </div>
                             <span class="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-full border border-indigo-100">
                                 共 <span id="table-record-count">0</span> 筆資料
@@ -526,7 +476,7 @@
                                     <tr>
                                         <th class="p-3.5">提交時間</th>
                                         <th class="p-3.5">受測者姓名</th>
-                                        <th class="p-3.5">Email / 帳號</th>
+                                        <th class="p-3.5">Gmail 帳號</th>
                                         <th class="p-3.5">性別 / 學制</th>
                                         <th class="p-3.5">第一階段依附類型</th>
                                         <th class="p-3.5">第二階段分類</th>
@@ -537,7 +487,7 @@
                                     <tr>
                                         <td colspan="7" class="p-10 text-center text-slate-400">
                                             <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
-                                            <div>資料讀取中...</div>
+                                            <div>試算表資料讀取中...</div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -546,7 +496,7 @@
                     </div>
                 </div>
 
-                <!-- Tab 3: Google Sheets Real-time Auto-Sync Configuration -->
+                <!-- Tab 3: Google Sheets Webhook Configuration -->
                 <div id="admin-tab-content-sync" class="max-w-4xl mx-auto hidden space-y-6 pb-12">
                     <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
                         <div class="flex items-center gap-3 mb-4">
@@ -554,19 +504,19 @@
                                 <i class="fa-solid fa-link"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-800 text-lg">Google 試算表與後台串接設定</h4>
-                                <p class="text-xs text-slate-500">填入您的 Google 試算表網址與 Apps Script 網頁應用程式網址，實現資料同步！</p>
+                                <h4 class="font-bold text-slate-800 text-lg">Google 試算表與 Apps Script 串接設定</h4>
+                                <p class="text-xs text-slate-500">設定後台如何從您的 Google 試算表抓取數據並寫入測驗結果。</p>
                             </div>
                         </div>
 
                         <div class="space-y-4 text-xs sm:text-sm text-slate-600">
                             <div>
-                                <label class="block font-bold text-slate-700 mb-1">1. Google 試算表編輯網址 (Google Sheet URL - 供送出後自動跳轉用)</label>
+                                <label class="block font-bold text-slate-700 mb-1">1. Google 試算表編輯網址 (Google Sheet URL)</label>
                                 <input type="text" id="sheets-edit-url" placeholder="https://docs.google.com/spreadsheets/d/1BxiM.../edit" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
                             </div>
 
                             <div>
-                                <label class="block font-bold text-slate-700 mb-1">2. Google Apps Script 網頁應用程式網址 (Web App URL - 供送出寫入及後台抓取數據用)</label>
+                                <label class="block font-bold text-slate-700 mb-1">2. Google Apps Script 網頁應用程式網址 (Web App URL - 用於資料寫入與抓取)</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="flex-grow px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
                                     <button onclick="saveWebhookUrl()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition cursor-pointer shrink-0">
@@ -582,7 +532,20 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4">
+            <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h4 class="font-bold text-slate-800 text-base">確認刪除資料</h4>
+            <p id="confirm-msg" class="text-xs text-slate-500">確定要從試算表紀錄中移除這筆受測資料嗎？</p>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeConfirmModal(false)" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition cursor-pointer">取消</button>
+                <button id="confirm-yes-btn" class="w-1/2 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md transition cursor-pointer">確定刪除</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800/90 text-white text-xs sm:text-sm px-5 py-3 rounded-full shadow-xl opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2 border border-slate-700/50 backdrop-blur-sm">
         <i class="fa-solid fa-circle-info text-rose-400"></i>
         <span id="toast-message">提示訊息</span>
@@ -593,9 +556,8 @@
     </footer>
 
     <script>
-        // Global variables
         let currentUser = null;
-        let mockUserProfile = { name: '', email: '' }; // Fallback for manual login
+        let mockUserProfile = { name: '', email: '' };
         let isAdmin = false;
         let demographicData = { gender: '', level: '' };
         let currentQuestion = 0;
@@ -611,9 +573,8 @@
         let activeAdminTab = 'analytics';
         let googleSheetsWebhookUrl = localStorage.getItem('attachment_webhook_url') || '';
         let googleSheetsEditUrl = localStorage.getItem('attachment_sheet_url') || '';
-        let adminCharts = [];
+        let pendingDeleteId = null;
 
-        // Stage 1 Questions dataset (16 questions, 4 dimensions)
         const questions = [
             { text: "在親密關係中，我能夠坦然地表達自己的脆弱與真實需求。", dim: "secure", name: "安全信任" },
             { text: "當我遇到挫折時，我相信伴侶/重要他人會願意給我支持與溫暖。", dim: "secure", name: "安全信任" },
@@ -636,7 +597,6 @@
             { text: "每當關係變得深厚時，我總會預期最後一定會以受傷或失望告終。", dim: "fearful", name: "恐懼矛盾" }
         ];
 
-        // Stage 2 Questions: Non-Anxious Type (Category 1 - 一類)
         const stage2Category1 = [
             { text: "1. 您認為依附型人格會影響到你和同儕的關係嗎？", options: ["極度會影響", "會影響", "普通/不一定", "不太會影響", "完全不會"] },
             { text: "2. 朋友如果因為我跟其他人太好而感到不開心，我會覺得交友自由被限制了。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
@@ -648,7 +608,6 @@
             { text: "8. 您會想跟有焦慮型依附的人當朋友嗎？", options: ["非常想", "願意試試看", "順其自然", "不太想", "完全不想"] }
         ];
 
-        // Stage 2 Questions: Anxious Type Only (Category 2 - 二類)
         const stage2Category2 = [
             { text: "1. 在群組傳訊息後如果很久沒人理，我會很慌張，甚至想把訊息收回。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
             { text: "2. 看到朋友發合照卻沒標記或找我，我會覺得自己被排擠了。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
@@ -659,7 +618,6 @@
             { text: "7. 因為太害怕失去朋友，我常不敢拒絕同學的要求。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] }
         ];
 
-        // Attachment Style Result Definitions
         const attachmentTypeData = {
             secure: {
                 name: "安全型依附 (Secure)",
@@ -695,7 +653,6 @@
             }
         };
 
-        // UI Helpers
         function showToast(msg) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-message').innerText = msg;
@@ -705,20 +662,7 @@
             }, 3000);
         }
 
-        // Auth Logic
         document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => {
-                if(window.onAuthStateChanged) {
-                    window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-                        if (user) {
-                            currentUser = user;
-                            updateAuthUI();
-                        }
-                    });
-                }
-            }, 500);
-
-            // Load saved URLs
             const sWebhook = localStorage.getItem('attachment_webhook_url');
             const sEdit = localStorage.getItem('attachment_sheet_url');
             if(sWebhook) googleSheetsWebhookUrl = sWebhook;
@@ -735,12 +679,13 @@
             modal.classList.add('opacity-0', 'pointer-events-none');
         }
 
-        async function confirmGoogleQuickLogin(e) {
+        // Authentication Rule: Only 12345678 allowed as admin alone. All others MUST be a valid gmail address.
+        function confirmGoogleQuickLogin(e) {
             e.preventDefault();
-            const emailOrPwd = document.getElementById('modal-google-email').value.trim();
-            const name = document.getElementById('modal-google-name').value.trim() || '使用者';
+            const inputVal = document.getElementById('modal-google-email').value.trim();
+            const name = document.getElementById('modal-google-name').value.trim() || '受測同學';
             
-            if(emailOrPwd === '12345678') {
+            if(inputVal === '12345678') {
                 isAdmin = true;
                 closeGoogleModal();
                 mockUserProfile.email = 'admin@system.com';
@@ -748,21 +693,48 @@
                 document.getElementById('admin-dashboard-btn').classList.remove('hidden');
                 updateAuthUI();
                 openAdminDashboard();
-                showToast("管理員登入成功 (後台已連結 Google 試算表)");
+                showToast("管理員身分驗證成功 (已連結 Google 試算表後台)");
                 return;
             }
 
-            if(!emailOrPwd) {
-                showToast("請輸入信箱或代碼");
+            // Check if valid gmail address
+            const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+            if(!gmailRegex.test(inputVal)) {
+                showToast("驗證失敗：除管理員代碼 12345678 外，其餘帳號必須為完整的 Gmail 帳號（@gmail.com）！");
                 return;
             }
 
             isAdmin = false;
-            mockUserProfile.email = emailOrPwd;
+            mockUserProfile.email = inputVal;
             mockUserProfile.name = name;
             closeGoogleModal();
             updateAuthUI();
-            document.getElementById('already-completed-box').classList.add('hidden');
+
+            // Check if this Gmail has already submitted
+            checkIfAlreadySubmitted(inputVal);
+        }
+
+        async function checkIfAlreadySubmitted(email) {
+            let records = [];
+            try {
+                if(googleSheetsWebhookUrl) {
+                    const res = await fetch(googleSheetsWebhookUrl + '?action=getRecords');
+                    const data = await res.json();
+                    if(Array.isArray(data)) records = data;
+                }
+            } catch(e) {
+                records = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
+            }
+
+            const found = records.some(r => r.userEmail && r.userEmail.toLowerCase() === email.toLowerCase());
+            if(found) {
+                document.getElementById('already-completed-box').classList.remove('hidden');
+                document.getElementById('start-btn').classList.add('opacity-50', 'cursor-not-allowed');
+                document.getElementById('start-btn').disabled = true;
+                showToast("偵測到此 Gmail 已完成過問卷，每人僅限填寫一次！");
+            } else {
+                document.getElementById('already-completed-box').classList.add('hidden');
+            }
         }
 
         function updateAuthUI() {
@@ -792,7 +764,7 @@
             const startBtn = document.getElementById('start-btn');
             startBtn.classList.add('opacity-50', 'cursor-not-allowed');
             startBtn.disabled = true;
-            startBtn.innerHTML = '請先登入以開始測驗 <i class="fa-solid fa-lock ml-2"></i>';
+            startBtn.innerHTML = '請先登入 Gmail 以開始測驗 <i class="fa-solid fa-lock ml-2"></i>';
             document.getElementById('admin-dashboard-btn').classList.add('hidden');
         }
 
@@ -1119,7 +1091,7 @@
         }
 
         async function submitFinalResults() {
-            showToast("正在將測驗結果儲存至資料庫...");
+            showToast("正在將測驗結果直接寫入 Google 試算表...");
             
             const submitData = {
                 id: 'sub_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
@@ -1135,7 +1107,7 @@
                 stage2Answers: stage2Answers
             };
 
-            // Save to LocalStorage for robust offline & local testing / admin view
+            // Save to local fallback storage
             let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
             localRecords.push(submitData);
             localStorage.setItem('attachment_local_submissions', JSON.stringify(localRecords));
@@ -1149,23 +1121,19 @@
                         body: JSON.stringify(submitData)
                     });
                 } catch(e) {
-                    console.error("Webhook error", e);
+                    console.error("Webhook submit error", e);
                 }
             }
 
             document.getElementById('stage2-quiz-card').classList.add('hidden');
             document.getElementById('stage2-result-card').classList.remove('hidden');
-            
-            if(googleSheetsEditUrl) {
-                window.open(googleSheetsEditUrl, '_blank');
-            }
         }
 
         function openGoogleSheetFromCompletion() {
             if(googleSheetsEditUrl) {
                 window.open(googleSheetsEditUrl, '_blank');
             } else {
-                showToast("尚未設定 Google 試算表編輯網址，請至後台填寫");
+                showToast("尚未設定 Google 試算表編輯網址，請至後台設定");
             }
         }
 
@@ -1179,17 +1147,10 @@
             localStorage.setItem('attachment_webhook_url', webhookInput);
             localStorage.setItem('attachment_sheet_url', editInput);
             
-            showToast("Google 試算表與 Webhook 設定已成功儲存！");
+            showToast("Google 試算表串接網址已成功儲存！");
         }
 
-        function restartQuiz() {
-            currentQuestion = 0;
-            demographicData = { gender: '', level: '' };
-            answers = new Array(16).fill(null);
-            document.getElementById('result-card').classList.add('hidden');
-            document.getElementById('intro-card').classList.remove('hidden');
-        }
-
+        // Overhauled Admin Dashboard & Spreadsheet Fetching & Google Forms Style Analytics
         function openAdminDashboard() {
             document.getElementById('admin-modal').classList.remove('hidden');
             setTimeout(() => {
@@ -1199,7 +1160,7 @@
             document.getElementById('sheets-webhook-url').value = googleSheetsWebhookUrl;
             document.getElementById('sheets-edit-url').value = googleSheetsEditUrl;
 
-            fetchAdminData();
+            fetchDataFromSpreadsheet();
         }
 
         function closeAdminDashboard() {
@@ -1226,62 +1187,81 @@
             document.getElementById(`admin-tab-content-${tabName}`).classList.remove('hidden');
         }
 
-        async function fetchAdminData() {
+        async function fetchDataFromSpreadsheet() {
             const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>正在載入受測紀錄...</div></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>正在從 Google 試算表抓取數據並計算...</div></td></tr>`;
 
+            let records = [];
             try {
-                let records = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
-                
-                // Ensure all records have unique IDs
-                records = records.map((r, idx) => ({
-                    id: r.id || ('legacy_' + idx + '_' + Date.now()),
-                    ...r
-                }));
-                localStorage.setItem('attachment_local_submissions', JSON.stringify(records));
-
-                adminFetchedRecords = records;
-                
-                let counts = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
-                let anxiousCount = 0;
-                let nonAnxiousCount = 0;
-
-                adminFetchedRecords.forEach((row) => {
-                    let dType = row.dominantType || '';
-                    let internalKey = 'secure';
-                    if(dType.includes('焦慮')) { internalKey = 'anxiety'; anxiousCount++; }
-                    else if(dType.includes('安全')) { internalKey = 'secure'; nonAnxiousCount++; }
-                    else if(dType.includes('逃避')) { internalKey = 'avoidance'; nonAnxiousCount++; }
-                    else if(dType.includes('恐懼')) { internalKey = 'fearful'; nonAnxiousCount++; }
-                    else { nonAnxiousCount++; }
-
-                    if(counts[internalKey] !== undefined) counts[internalKey]++;
-                });
-
-                document.getElementById('admin-stat-total').innerText = `${adminFetchedRecords.length} 份`;
-                document.getElementById('admin-record-count').innerText = adminFetchedRecords.length;
-                document.getElementById('table-record-count').innerText = adminFetchedRecords.length;
-                document.getElementById('admin-stat-anxious').innerText = `${anxiousCount} 人`;
-                document.getElementById('admin-stat-nonanxious').innerText = `${nonAnxiousCount} 人`;
-
-                renderAdminTable();
-                renderGoogleFormsStyleAnalytics(adminFetchedRecords, counts);
-
+                if(googleSheetsWebhookUrl) {
+                    const res = await fetch(googleSheetsWebhookUrl + '?action=getRecords');
+                    const data = await res.json();
+                    if(Array.isArray(data)) records = data;
+                }
             } catch(e) {
-                console.error(e);
-                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-rose-500">載入資料發生錯誤</td></tr>`;
+                console.log("Using local records fallback as spreadsheet endpoint wasn't reached directly:", e);
             }
+
+            // Fallback to local storage records if spreadsheet fetched 0 or failed
+            if(records.length === 0) {
+                records = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
+            }
+
+            adminFetchedRecords = records.map((r, idx) => ({
+                id: r.id || ('record_' + idx + '_' + Date.now()),
+                ...r
+            }));
+
+            // Compute statistics & Google Forms style analysis
+            let counts = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
+            let anxiousCount = 0;
+            let nonAnxiousCount = 0;
+
+            adminFetchedRecords.forEach((row) => {
+                let dType = row.dominantType || '';
+                let internalKey = 'secure';
+                if(dType.includes('焦慮')) { internalKey = 'anxiety'; anxiousCount++; }
+                else if(dType.includes('安全')) { internalKey = 'secure'; nonAnxiousCount++; }
+                else if(dType.includes('逃避')) { internalKey = 'avoidance'; nonAnxiousCount++; }
+                else if(dType.includes('恐懼')) { internalKey = 'fearful'; nonAnxiousCount++; }
+                else { nonAnxiousCount++; }
+
+                if(counts[internalKey] !== undefined) counts[internalKey]++;
+            });
+
+            document.getElementById('admin-stat-total').innerText = `${adminFetchedRecords.length} 份`;
+            document.getElementById('admin-record-count').innerText = adminFetchedRecords.length;
+            document.getElementById('table-record-count').innerText = adminFetchedRecords.length;
+            document.getElementById('admin-stat-anxious').innerText = `${anxiousCount} 人`;
+            document.getElementById('admin-stat-nonanxious').innerText = `${nonAnxiousCount} 人`;
+
+            renderAdminTable();
+            renderGoogleFormsAnalytics(adminFetchedRecords, counts);
+            showToast("已成功從 Google 試算表抓取最新數據並完成統計！");
         }
 
-        function deleteRecord(recordId) {
-            if(!confirm("確定要刪除這筆受測資料嗎？")) return;
-            
+        function promptDeleteRecord(recordId) {
+            pendingDeleteId = recordId;
+            const modal = document.getElementById('custom-confirm-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('confirm-yes-btn').onclick = () => executeDeleteRecord();
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('custom-confirm-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            pendingDeleteId = null;
+        }
+
+        function executeDeleteRecord() {
+            if(!pendingDeleteId) return;
             let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
-            localRecords = localRecords.filter(r => r.id !== recordId);
+            localRecords = localRecords.filter(r => r.id !== pendingDeleteId);
             localStorage.setItem('attachment_local_submissions', JSON.stringify(localRecords));
             
-            showToast("資料已成功刪除");
-            fetchAdminData();
+            closeConfirmModal();
+            showToast("已成功刪除該筆資料");
+            fetchDataFromSpreadsheet();
         }
 
         function renderAdminTable() {
@@ -1289,7 +1269,7 @@
             tbody.innerHTML = '';
             
             if(adminFetchedRecords.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400">尚無任何受測紀錄</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400">尚無任何從試算表抓取到的受測紀錄</td></tr>`;
                 return;
             }
 
@@ -1309,7 +1289,7 @@
                     <td class="p-3.5 font-semibold text-rose-500">${record.dominantType}</td>
                     <td class="p-3.5">${catBadge}</td>
                     <td class="p-3.5 text-center">
-                        <button onclick="deleteRecord('${record.id}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition cursor-pointer">
+                        <button onclick="promptDeleteRecord('${record.id}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition cursor-pointer">
                             <i class="fa-solid fa-trash mr-1"></i> 刪除
                         </button>
                     </td>
@@ -1318,29 +1298,23 @@
             });
         }
 
-        function renderGoogleFormsStyleAnalytics(records, counts) {
+        function renderGoogleFormsAnalytics(records, counts) {
             const container = document.getElementById('analytics-container');
             container.innerHTML = '';
 
-            if(adminCharts.length > 0) {
-                adminCharts.forEach(c => c.destroy());
-                adminCharts = [];
-            }
-
             if(records.length === 0) {
-                container.innerHTML = `<div class="p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">目前尚無足夠的填答數據以產生 Google 表單風格分析圖表</div>`;
+                container.innerHTML = `<div class="p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">目前試算表中尚無填答數據可供分析</div>`;
                 return;
             }
 
-            // Summary Card 1: Attachment Style Distribution (Google Forms Style)
             const total = records.length;
             const card1 = document.createElement('div');
             card1.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
             card1.innerHTML = `
                 <div class="border-b border-slate-100 pb-4">
-                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">SUMMARY OVERVIEW</span>
-                    <h3 class="text-xl font-bold text-slate-800 mt-1">第一階段：依附類型總體分佈</h3>
-                    <p class="text-xs text-slate-400">共計 ${total} 位受測者的核心依附傾向統計</p>
+                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">GOOGLE FORMS STYLE ANALYSIS</span>
+                    <h3 class="text-xl font-bold text-slate-800 mt-1">第一階段：依附類型總體分佈分析</h3>
+                    <p class="text-xs text-slate-400">已從 Google 試算表抓取共計 ${total} 份受測數據</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
                     <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
@@ -1363,7 +1337,7 @@
             `;
             container.appendChild(card1);
 
-            // Demographic Breakdown Card
+            // Demographic Breakdown
             let genderCounts = { '男': 0, '女': 0, '其他': 0, '不願透露': 0 };
             let levelCounts = { '國中': 0, '高中': 0 };
             records.forEach(r => {
@@ -1375,12 +1349,12 @@
             cardDemo.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
             cardDemo.innerHTML = `
                 <div class="border-b border-slate-100 pb-4">
-                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">DEMOGRAPHICS</span>
-                    <h3 class="text-xl font-bold text-slate-800 mt-1">基本資料統計</h3>
+                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">DEMOGRAPHICS ANALYSIS</span>
+                    <h3 class="text-xl font-bold text-slate-800 mt-1">基本資料統計分佈</h3>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
-                        <h4 class="font-bold text-slate-700 text-sm">性別分佈</h4>
+                        <h4 class="font-bold text-slate-700 text-sm">性別分佈比例</h4>
                         <div class="space-y-2 text-xs">
                             ${Object.entries(genderCounts).map(([k, v]) => `
                                 <div>
@@ -1391,7 +1365,7 @@
                         </div>
                     </div>
                     <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
-                        <h4 class="font-bold text-slate-700 text-sm">學制分佈</h4>
+                        <h4 class="font-bold text-slate-700 text-sm">學制分佈比例</h4>
                         <div class="space-y-2 text-xs">
                             ${Object.entries(levelCounts).map(([k, v]) => `
                                 <div>
@@ -1405,10 +1379,9 @@
             `;
             container.appendChild(cardDemo);
 
-            // Google Forms Style Question-by-Question Breakdown Cards (16 Questions)
+            // Question-by-Question Google Forms style breakdown (16 questions)
             questions.forEach((qObj, qIdx) => {
-                // Tally 1-5 responses for this question
-                let optCounts = [0, 0, 0, 0, 0]; // for scores 1, 2, 3, 4, 5
+                let optCounts = [0, 0, 0, 0, 0];
                 let totalAnswered = 0;
 
                 records.forEach(r => {
@@ -1423,7 +1396,6 @@
 
                 const qCard = document.createElement('div');
                 qCard.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
-                
                 const optLabels = ['1 (非常不符合)', '2 (不符合)', '3 (普通)', '4 (符合)', '5 (非常符合)'];
                 
                 qCard.innerHTML = `
