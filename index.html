@@ -223,13 +223,27 @@
         </div>
 
         <div id="result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
-            <div class="text-center">
+            <div class="text-center mb-6">
                 <div id="result-icon-bg" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 text-3xl shadow-sm">
                 </div>
 
                 <p class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1">YOUR ATTACHMENT STYLE</p>
                 <h2 id="result-type" class="text-2xl sm:text-3xl font-bold text-slate-800 mb-2"></h2>
-                <p id="result-subtitle" class="text-sm font-medium text-rose-500 mb-6"></p>
+                <p id="result-subtitle" class="text-sm font-medium text-rose-500 mb-0"></p>
+            </div>
+
+            <!-- Stage 2 CTA Banner -->
+            <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 rounded-3xl p-6 text-white text-center shadow-xl mb-8 relative overflow-hidden">
+                <div class="relative z-10">
+                    <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block mb-2 backdrop-blur-sm">
+                        <i class="fa-solid fa-star text-amber-300 mr-1"></i> 請繼續完成下一階段分流問卷
+                    </span>
+                    <h3 class="text-xl sm:text-2xl font-black mb-2 tracking-wide">第二階段：同儕社交關係深度評估</h3>
+                    <p class="text-xs sm:text-sm text-indigo-100 mb-5 max-w-md mx-auto">系統已依您的依附特質進行分流（一類非焦慮型 / 二類焦慮型），請點擊下方按鈕繼續。</p>
+                    <button onclick="startStage2()" id="stage2-cta-btn" class="w-full sm:w-auto px-10 py-4 bg-amber-400 hover:bg-amber-300 text-slate-900 font-black rounded-full shadow-2xl hover:scale-105 transition duration-300 text-base sm:text-lg flex items-center justify-center gap-3 mx-auto cursor-pointer border-2 border-amber-200">
+                        <span>進入第二階段分流問卷</span> <i class="fa-solid fa-circle-arrow-right text-xl animate-pulse"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Radar Chart Area -->
@@ -274,20 +288,6 @@
                         <i class="fa-solid fa-seedling text-amber-500"></i> 給你的成長與親密建議
                     </h4>
                     <p id="result-advice" class="text-amber-950"></p>
-                </div>
-            </div>
-
-            <!-- Stage 2 CTA Banner -->
-            <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 rounded-3xl p-6 text-white text-center shadow-xl mb-6 relative overflow-hidden">
-                <div class="relative z-10">
-                    <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block mb-2 backdrop-blur-sm">
-                        <i class="fa-solid fa-star text-amber-300 mr-1"></i> 請繼續完成下一階段分流問卷
-                    </span>
-                    <h3 class="text-xl sm:text-2xl font-black mb-2 tracking-wide">第二階段：同儕社交關係深度評估</h3>
-                    <p class="text-xs sm:text-sm text-indigo-100 mb-5 max-w-md mx-auto">系統已依您的依附特質進行分流（一類非焦慮型 / 二類焦慮型），請點擊下方按鈕繼續。</p>
-                    <button onclick="startStage2()" id="stage2-cta-btn" class="w-full sm:w-auto px-10 py-4 bg-amber-400 hover:bg-amber-300 text-slate-900 font-black rounded-full shadow-2xl hover:scale-105 transition duration-300 text-base sm:text-lg flex items-center justify-center gap-3 mx-auto cursor-pointer border-2 border-amber-200">
-                        <span>進入第二階段分流問卷</span> <i class="fa-solid fa-circle-arrow-right text-xl animate-pulse"></i>
-                    </button>
                 </div>
             </div>
         </div>
