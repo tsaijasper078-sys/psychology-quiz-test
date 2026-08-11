@@ -16,7 +16,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'attachment-survey-app';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -47,9 +47,11 @@
         window.doc = doc;
         window.getDoc = getDoc;
         window.setDoc = setDoc;
+        window.addDoc = addDoc;
         window.deleteDoc = deleteDoc;
         window.collection = collection;
         window.getDocs = getDocs;
+        window.onAuthStateChanged = onAuthStateChanged;
     </script>
 
     <style>
@@ -81,7 +83,7 @@
     <main class="max-w-3xl mx-auto w-full flex-grow flex flex-col justify-center">
 
         <!-- Intro Card -->
-        <div id="intro-card" class="bg-white rounded-3xl p-6 sm:p-10 card-shadow text-center border border-rose-100">
+        <div id="intro-card" class="bg-white rounded-3xl p-6 sm:p-10 card-shadow text-center border border-rose-100 block">
             <!-- Top Identity Status & Login Bar -->
             <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
                 <!-- Logged Out View -->
@@ -104,7 +106,7 @@
                 <!-- Logged In View -->
                 <div id="logged-in-view" class="hidden flex flex-col sm:flex-row items-center justify-between w-full gap-3">
                     <div class="flex items-center gap-3">
-                        <img id="user-avatar" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-rose-300 object-cover shadow-sm">
+                        <div id="user-avatar-placeholder" class="w-10 h-10 rounded-full bg-rose-200 text-rose-600 flex items-center justify-center font-bold text-lg shadow-sm"></div>
                         <div>
                             <div class="flex items-center gap-2">
                                 <span id="user-name" class="font-bold text-slate-800 text-sm">使用者</span>
@@ -148,8 +150,8 @@
                 <p class="font-bold text-rose-500 pt-1">由衷感謝幫忙填寫問卷的同學，每份回覆都對我們至關重要!</p>
             </div>
 
-            <button id="start-btn" onclick="startQuiz()" class="w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer">
-                開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>
+            <button id="start-btn" onclick="startQuiz()" class="w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer opacity-50 cursor-not-allowed" disabled>
+                請先登入以開始測驗 <i class="fa-solid fa-lock ml-2"></i>
             </button>
         </div>
 
@@ -201,11 +203,11 @@
             </div>
 
             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-                <button id="prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center">
+                <button id="prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center invisible">
                     <i class="fa-solid fa-chevron-left mr-1.5"></i> 上一題
                 </button>
                 
-                <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 bg-rose-400 hover:bg-rose-500 text-white font-medium rounded-full shadow-md shadow-rose-200 transition text-sm flex items-center">
+                <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 bg-rose-400 hover:bg-rose-500 text-white font-medium rounded-full shadow-md shadow-rose-200 transition text-sm flex items-center opacity-50 cursor-not-allowed" disabled>
                     <span id="next-btn-text">下一題</span> <i class="fa-solid fa-chevron-right ml-1.5"></i>
                 </button>
             </div>
@@ -284,7 +286,7 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onclick="restartQuiz()" class="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-full transition text-sm">
+                <button onclick="restartQuiz()" class="hidden w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-full transition text-sm">
                     <i class="fa-solid fa-rotate-right mr-1.5"></i> 重新測驗
                 </button>
             </div>
@@ -314,15 +316,15 @@
             </div>
 
             <!-- Dynamic Options Container -->
-            <div id="s2-options-container" class="mb-6">
+            <div id="s2-options-container" class="mb-6 flex flex-col gap-3">
             </div>
 
             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-                <button id="s2-prev-btn" onclick="prevStage2Question()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center">
+                <button id="s2-prev-btn" onclick="prevStage2Question()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center invisible">
                     <i class="fa-solid fa-chevron-left mr-1.5"></i> 上一題
                 </button>
                 
-                <button id="s2-next-btn" onclick="nextStage2Question()" class="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-full shadow-md shadow-indigo-200 transition text-sm flex items-center">
+                <button id="s2-next-btn" onclick="nextStage2Question()" class="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-full shadow-md shadow-indigo-200 transition text-sm flex items-center opacity-50 cursor-not-allowed" disabled>
                     <span id="s2-next-btn-text">下一題</span> <i class="fa-solid fa-chevron-right ml-1.5"></i>
                 </button>
             </div>
@@ -377,14 +379,14 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-lg">身分驗證與管理員登入</h3>
-                    <p class="text-xs text-slate-400">受測者請輸入 Gmail / 管理員直接輸入 12345678</p>
+                    <p class="text-xs text-slate-400">受測者請輸入信箱或名字 / 管理員輸入 12345678</p>
                 </div>
             </div>
 
             <form onsubmit="confirmGoogleQuickLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">您的 Google / Gmail 信箱 或 管理員密碼</label>
-                    <input type="text" id="modal-google-email" required placeholder="例如：example@gmail.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">您的 信箱 或 管理員密碼</label>
+                    <input type="text" id="modal-google-email" required placeholder="例如：example@gmail.com 或直接輸入暱稱" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">顯示姓名 / 暱稱 (選填)</label>
@@ -396,51 +398,85 @@
                         取消
                     </button>
                     <button type="submit" class="w-1/2 py-2.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full text-xs shadow-md transition cursor-pointer">
-                        確認並繼續測驗
+                        確認並繼續
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Demographic Intro Card (Before Quiz) -->
+    <div id="demographic-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
+        <div class="inline-block bg-rose-50 text-rose-500 font-semibold text-xs px-3 py-1 rounded-full mb-3">
+            基本基本資料填寫
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">請先回答以下 2 項基本資料</h2>
+        
+        <div class="space-y-6 text-left mb-8">
+            <!-- Question 1: Gender -->
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                <label class="block text-sm font-bold text-slate-800 mb-3">1. 您的性別：</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <button type="button" onclick="selectDemoGender('男')" id="demo-gender-男" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">男</button>
+                    <button type="button" onclick="selectDemoGender('女')" id="demo-gender-女" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">女</button>
+                    <button type="button" onclick="selectDemoGender('其他')" id="demo-gender-其他" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">其他</button>
+                    <button type="button" onclick="selectDemoGender('不願透露')" id="demo-gender-不願透露" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">不願透露</button>
+                </div>
+            </div>
+
+            <!-- Question 2: School Level -->
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                <label class="block text-sm font-bold text-slate-800 mb-3">2. 您的學制：</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="selectDemoLevel('國中')" id="demo-level-國中" class="demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">國中</button>
+                    <button type="button" onclick="selectDemoLevel('高中')" id="demo-level-高中" class="demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">高中</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+            <button onclick="backToIntro()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center cursor-pointer">
+                <i class="fa-solid fa-chevron-left mr-1.5"></i> 返回說明
+            </button>
+            <button id="demographic-next-btn" onclick="proceedToQuiz()" class="px-8 py-3 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-md transition text-sm opacity-50 cursor-not-allowed" disabled>
+                下一步：開始心理測驗 <i class="fa-solid fa-chevron-right ml-1.5"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Admin Dashboard Modal -->
-    <div id="admin-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 z-50 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+    <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-6 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-100 flex flex-col overflow-hidden text-left">
+            
             <!-- Modal Header -->
-            <div class="p-5 sm:p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+            <div class="p-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/30">
-                        <i class="fa-solid fa-crown text-xl"></i>
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center font-bold text-lg shadow-inner">
+                        <i class="fa-solid fa-chart-line text-white"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-lg text-white">專題研究數據管理後台</h3>
-                        <p class="text-xs text-slate-400">專題團隊數據中心：Google 表單式統計圖表、實時紀錄與 Google 試算表自動同步</p>
+                        <h3 class="font-bold text-base sm:text-lg">專題研究後台分析看板</h3>
+                        <p class="text-xs text-slate-400">明道中學應用英語科專題研究團隊專用管理介面</p>
                     </div>
                 </div>
-                <button onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white transition p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
+                <button onclick="closeAdminDashboard()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <!-- Stats Bar -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 border-b border-slate-200 shrink-0">
-                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
-                    <span class="text-xs text-slate-400 block font-bold mb-0.5">總填寫份數</span>
-                    <span id="admin-stat-total" class="text-xl font-black text-slate-800">0 份</span>
+            <!-- Top Stats Overview Bar -->
+            <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 border-b border-slate-200 text-center shrink-0">
+                <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="text-[11px] text-slate-400 font-bold mb-0.5">總有效問卷數</div>
+                    <div id="admin-stat-total" class="text-lg sm:text-xl font-black text-slate-800">0 份</div>
                 </div>
-                <div class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm">
-                    <span class="text-xs text-amber-600 block font-bold mb-0.5">焦慮型受測者 (二類)</span>
-                    <span id="admin-stat-anxious" class="text-xl font-black text-amber-600">0 人</span>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="text-[11px] text-amber-600 font-bold mb-0.5">焦慮傾向人數</div>
+                    <div id="admin-stat-anxious" class="text-lg sm:text-xl font-black text-amber-600">0 人</div>
                 </div>
-                <div class="bg-white p-3 rounded-2xl border border-indigo-100 shadow-sm">
-                    <span class="text-xs text-indigo-600 block font-bold mb-0.5">非焦慮型 (一類)</span>
-                    <span id="admin-stat-nonanxious" class="text-xl font-black text-indigo-600">0 人</span>
-                </div>
-                <div class="bg-white p-3 rounded-2xl border border-emerald-100 shadow-sm">
-                    <span class="text-xs text-emerald-600 block font-bold mb-0.5">雲端資料庫狀態</span>
-                    <span id="admin-stat-sync-status" class="text-xs font-bold text-emerald-600 truncate block">
-                        <i class="fa-solid fa-cloud-check mr-1"></i> 雲端雲實時連線
-                    </span>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="text-[11px] text-indigo-600 font-bold mb-0.5">非焦慮傾向人數</div>
+                    <div id="admin-stat-nonanxious" class="text-lg sm:text-xl font-black text-indigo-600">0 人</div>
                 </div>
             </div>
 
@@ -448,21 +484,18 @@
             <div class="px-4 pt-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
                 <div class="flex items-center gap-2 border-b-2 border-transparent">
                     <button id="tab-btn-analytics" onclick="switchAdminTab('analytics')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-indigo-600 text-indigo-600 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-chart-pie"></i> Google表單式統計分析
+                        <i class="fa-solid fa-chart-pie"></i> 統計分析
                     </button>
                     <button id="tab-btn-table" onclick="switchAdminTab('table')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-list-check"></i> 詳細受測紀錄與管理 (<span id="admin-record-count">0</span>)
+                        <i class="fa-solid fa-list-check"></i> 詳細受測紀錄 (<span id="admin-record-count">0</span>)
                     </button>
                     <button id="tab-btn-sync" onclick="switchAdminTab('sync')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-file-excel text-emerald-600"></i> Google 試算表自動同步設定
+                        <i class="fa-solid fa-file-excel text-emerald-600"></i> 自動同步設定
                     </button>
                 </div>
                 <div class="flex items-center gap-2 pb-2">
                     <button onclick="fetchAdminData()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-arrows-rotate"></i> 重新整理數據
-                    </button>
-                    <button onclick="copyForGoogleSheets()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm">
-                        <i class="fa-solid fa-copy"></i> 複製貼至 Excel
+                        <i class="fa-solid fa-arrows-rotate"></i> 重新整理
                     </button>
                 </div>
             </div>
@@ -485,19 +518,18 @@
                         <table class="w-full text-left text-xs text-slate-700">
                             <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
                                 <tr>
-                                    <th class="p-3">#</th>
                                     <th class="p-3">姓名 / 標記</th>
                                     <th class="p-3">Email / 代碼</th>
+                                    <th class="p-3">性別 / 學制</th>
                                     <th class="p-3">第一階段依附風格</th>
                                     <th class="p-3">第二階段分類</th>
-                                    <th class="p-3">第二階段回答明細</th>
                                     <th class="p-3">提交時間</th>
                                     <th class="p-3 text-center">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-table-body" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="8" class="p-8 text-center text-slate-400">
+                                    <td colspan="7" class="p-8 text-center text-slate-400">
                                         <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
                                         <div>資料讀取中...</div>
                                     </td>
@@ -554,7 +586,6 @@ function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = JSON.parse(e.postData.contents);
   
-  // 如果是空表則建立標題列
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(["提交時間", "受測者姓名", "Email/帳號", "第一階段依附類型", "第二階段分類", "第二階段回答細項"]);
   }
@@ -595,6 +626,9 @@ function doPost(e) {
     <script>
         // Global variables
         let currentUser = null;
+        let mockUserProfile = { name: '', email: '' }; // Fallback for manual login
+        let isAdmin = false;
+        let demographicData = { gender: '', level: '' };
         let currentQuestion = 0;
         let answers = new Array(16).fill(null);
         let calculatedScores = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
@@ -607,6 +641,7 @@ function doPost(e) {
         let adminFetchedRecords = [];
         let activeAdminTab = 'analytics';
         let googleSheetsWebhookUrl = localStorage.getItem('attachment_webhook_url') || '';
+        let adminCharts = [];
 
         // Stage 1 Questions dataset (16 questions, 4 dimensions)
         const questions = [
@@ -660,340 +695,328 @@ function doPost(e) {
                 name: "安全型依附 (Secure)",
                 subtitle: "自信開放 · 情感穩定 · 善於溝通",
                 colorClass: "bg-emerald-100 text-emerald-600",
+                icon: '<i class="fa-solid fa-shield-heart text-emerald-500"></i>',
                 desc: "在親密與社交關係中，你展現出高度的安全感與情感成熟度。你能夠坦然表達自己的脆弱與需求，同時也能尊重他人的界線。你不害怕被拒絕，也能建構溫暖而持久的對等連結。",
                 advice: "保持你開放且溫和的心態！你的內心穩定度常常能在群體中成為安撫他人的力量。"
             },
-            anxious: {
+            anxiety: {
                 name: "焦慮型依附 (Anxious)",
                 subtitle: "心思細膩 · 渴望連結 · 敏感重視夥伴",
                 colorClass: "bg-amber-100 text-amber-600",
-                desc: "你在關係中非常投入且心思敏感，極度看重與伴侶或同儕的連結。當對方未即時回應或表現冷淡時，內心容易升起不安與沮喪感，有時會習慣透過重複確認來獲取安全感。",
-                advice: "練習把關懷與認同的目光轉回自己身上。告訴自己：『即使他人忙碌，我的價值依然是完整且值得被愛的。』"
+                icon: '<i class="fa-solid fa-heart-crack text-amber-500"></i>',
+                desc: "你非常重視關係，渴望與他人建立深刻的連結。因為害怕失去，你可能會對他人的情緒變化特別敏感，有時會過度解讀對方的行為。",
+                advice: "試著建立自我價值感，相信自己是值得被愛的，不需要透過不斷確認來證明。將注意力拉回自己身上。"
             },
-            avoidant: {
+            avoidance: {
                 name: "逃避型依附 (Avoidant)",
-                subtitle: "獨立自強 · 重視界線 · 自我保護",
+                subtitle: "獨立自主 · 保持距離 · 理性抽離",
                 colorClass: "bg-sky-100 text-sky-600",
-                desc: "你非常獨立，習慣自己消化情緒與解決問題。當關係變得過於親密或對方有所依賴時，你可能會下意識拉開距離，因為適當的個人空間能讓你感到最安心與自在。",
-                advice: "獨立是你的優勢，但情感的交融並不等於失去自由。嘗試試著向信任的人展露微小的真實情緒，體驗彼此支持的溫暖。"
+                icon: '<i class="fa-solid fa-person-walking-arrow-right text-sky-500"></i>',
+                desc: "你習慣依靠自己，重視個人空間與獨立性。面對過於親密的關係或情緒表達，你可能會感到不自在並試圖拉開距離以保護自己不受傷。",
+                advice: "嘗試在安全的關係中，慢慢練習表達自己的脆弱與真實需求。依賴他人並不可怕，適度的坦誠能帶來更深的連結。"
             },
             fearful: {
-                name: "混亂/恐懼型依附 (Fearful-Avoidant)",
-                subtitle: "渴望親密 · 害怕受傷 · 內心拉扯",
+                name: "恐懼矛盾型依附 (Fearful)",
+                subtitle: "內心拉扯 · 渴望又害怕 · 矛盾不安",
                 colorClass: "bg-purple-100 text-purple-600",
-                desc: "你的內心常經歷矛盾的拉扯：一方面渴望溫暖的親密關係，另一方面又深怕靠近後會受傷或失望。這種不安讓你容易在靠近與推開之間躊躇不前。",
-                advice: "給自己多一點溫柔與接納。理解這份矛盾是內心保護自己的本能，嘗試以小步慢跑的方式練習漸進式的安全信任。"
+                icon: '<i class="fa-solid fa-bolt text-purple-500"></i>',
+                desc: "你的內心經常處於矛盾之中：一方面極度渴望親密與愛，另一方面又深怕受傷而推開對方，導致關係經常忽冷忽熱。",
+                advice: "建立安全感是你的重要課題。試著慢慢釐清過去可能造成的創傷，練習在小事上信任他人，給自己多一點耐心。"
             }
         };
 
-        // Admin Dashboard Functions
-        function openAdminDashboard() {
-            const modal = document.getElementById('admin-modal');
-            if (modal) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.classList.add('opacity-100');
-                fetchAdminData();
-            }
+        // UI Helpers
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
         }
 
-        function closeAdminDashboard() {
-            const modal = document.getElementById('admin-modal');
-            if (modal) {
-                modal.classList.remove('opacity-100');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-            }
-        }
-
-        // Authentication Handlers
-        async function handleGoogleLogin() {
-            if (window.firebaseAuth && window.signInWithPopup && window.googleProvider) {
-                try {
-                    const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
-                    const user = result.user;
-                    currentUser = {
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName || user.email.split('@')[0],
-                        photoURL: user.photoURL || `https://placehold.co/100x100/e0e7ff/3730a3?text=G`
-                    };
-                    
-                    document.getElementById('logged-out-view').classList.add('hidden');
-                    document.getElementById('logged-in-view').classList.remove('hidden');
-                    document.getElementById('user-name').innerText = currentUser.displayName;
-                    document.getElementById('user-avatar').src = currentUser.photoURL;
-                    
-                    document.getElementById('user-status-tag').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 身份已驗證`;
-                    showToast(`Google 帳號 ${currentUser.displayName} 登入成功！`);
-
-                    await checkExistingSubmission(currentUser.uid);
-                    return;
-                } catch (e) {
-                    console.log("Google Popup Auth notice:", e);
+        // Auth Logic
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                if(window.onAuthStateChanged) {
+                    window.onAuthStateChanged(window.firebaseAuth, async (user) => {
+                        if (user) {
+                            currentUser = user;
+                            updateAuthUI();
+                        }
+                    });
                 }
-            }
-            openGoogleModal();
-        }
+            }, 500);
+        });
 
-        function openGoogleModal() {
+        function handleGoogleLogin() {
             const modal = document.getElementById('google-login-modal');
-            if (modal) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.classList.add('opacity-100');
-            }
+            modal.classList.remove('opacity-0', 'pointer-events-none');
         }
 
         function closeGoogleModal() {
             const modal = document.getElementById('google-login-modal');
-            if (modal) {
-                modal.classList.remove('opacity-100');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-            }
+            modal.classList.add('opacity-0', 'pointer-events-none');
         }
 
         async function confirmGoogleQuickLogin(e) {
-            if (e) e.preventDefault();
-            const emailInput = document.getElementById('modal-google-email');
-            const nameInput = document.getElementById('modal-google-name');
+            e.preventDefault();
+            const emailOrPwd = document.getElementById('modal-google-email').value.trim();
+            const name = document.getElementById('modal-google-name').value.trim() || '使用者';
             
-            const rawVal = emailInput ? emailInput.value.trim() : '';
-            const isAdmin = (rawVal === '12345678' || rawVal.startsWith('12345678@'));
-            
-            let email = rawVal;
-            if (isAdmin && !rawVal.includes('@')) {
-                email = 'admin12345678@mingdao.edu.tw';
-            } else if (!email) {
-                email = 'user@gmail.com';
+            if(emailOrPwd === '12345678') {
+                isAdmin = true;
+                closeGoogleModal();
+                mockUserProfile.email = 'admin@system.com';
+                mockUserProfile.name = '系統管理員';
+                document.getElementById('admin-dashboard-btn').classList.remove('hidden');
+                updateAuthUI();
+                openAdminDashboard();
+                showToast("管理員登入成功 (可無限次測驗)");
+                return;
             }
 
-            const inputName = nameInput ? nameInput.value.trim() : '';
-            const name = inputName ? inputName : (isAdmin ? '管理員 (12345678)' : email.split('@')[0]);
-            const uid = isAdmin ? 'admin_12345678' : ('g_' + btoa(email).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16));
+            if(!emailOrPwd) {
+                showToast("請輸入信箱或代碼");
+                return;
+            }
 
-            currentUser = {
-                uid: uid,
-                email: email,
-                displayName: isAdmin ? `👑 管理員 (12345678)` : name,
-                photoURL: `https://placehold.co/100x100/fce7f3/be185d?text=${encodeURIComponent(name.substring(0, 1).toUpperCase())}`,
-                isAdmin: isAdmin
-            };
-
+            isAdmin = false;
+            mockUserProfile.email = emailOrPwd;
+            mockUserProfile.name = name;
             closeGoogleModal();
+            updateAuthUI();
+            
+            if(window.firebaseDb) {
+                try {
+                    const q = window.collection(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses');
+                    const snapshot = await window.getDocs(q);
+                    let hasSubmitted = false;
+                    snapshot.forEach(doc => {
+                        if(doc.data().userEmail === emailOrPwd) {
+                            hasSubmitted = true;
+                        }
+                    });
 
+                    if(hasSubmitted) {
+                        document.getElementById('already-completed-box').classList.remove('hidden');
+                        document.getElementById('start-btn').classList.add('opacity-50', 'cursor-not-allowed');
+                        document.getElementById('start-btn').disabled = true;
+                        document.getElementById('start-btn').innerHTML = '已完成過問卷 <i class="fa-solid fa-check ml-2"></i>';
+                    } else {
+                        document.getElementById('already-completed-box').classList.add('hidden');
+                    }
+                } catch(err) {
+                    console.log("Check submission error", err);
+                }
+            }
+        }
+
+        function updateAuthUI() {
             document.getElementById('logged-out-view').classList.add('hidden');
             document.getElementById('logged-in-view').classList.remove('hidden');
-            document.getElementById('user-name').innerText = currentUser.displayName;
-            document.getElementById('user-avatar').src = currentUser.photoURL;
+            document.getElementById('logged-in-view').classList.add('flex');
+            
+            const initialChar = mockUserProfile.name ? mockUserProfile.name.charAt(0).toUpperCase() : 'U';
+            document.getElementById('user-avatar-placeholder').innerText = initialChar;
+            document.getElementById('user-name').innerText = mockUserProfile.name || mockUserProfile.email;
 
-            if (isAdmin) {
-                document.getElementById('user-status-tag').innerHTML = `<i class="fa-solid fa-crown text-amber-500"></i> 管理員模式 (可看後台)`;
-                showToast(`👑 12345678 管理員驗證成功！已啟用專題數據後台與測試權限`);
-            } else {
-                document.getElementById('user-status-tag').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 身份已驗證`;
-                showToast(`身分驗證完成 (${currentUser.displayName})`);
+            if(isAdmin || document.getElementById('already-completed-box').classList.contains('hidden')) {
+                const startBtn = document.getElementById('start-btn');
+                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                startBtn.disabled = false;
+                startBtn.innerHTML = isAdmin ? '開始測驗 (管理員無限次) <i class="fa-solid fa-arrow-right ml-2"></i>' : '開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>';
             }
-
-            await checkExistingSubmission(currentUser.uid);
         }
 
         function handleSignOut() {
-            currentUser = null;
-            document.getElementById('logged-out-view').classList.remove('hidden');
+            isAdmin = false;
+            mockUserProfile = { name: '', email: '' };
+            demographicData = { gender: '', level: '' };
             document.getElementById('logged-in-view').classList.add('hidden');
+            document.getElementById('logged-in-view').classList.remove('flex');
+            document.getElementById('logged-out-view').classList.remove('hidden');
+            document.getElementById('already-completed-box').classList.add('hidden');
             
-            const adminBtn = document.getElementById('admin-dashboard-btn');
-            if (adminBtn) adminBtn.classList.add('hidden');
-
             const startBtn = document.getElementById('start-btn');
-            if (startBtn) {
-                startBtn.disabled = true;
-                startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-slate-300 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-not-allowed";
-                startBtn.innerHTML = `請先驗證帳號 <i class="fa-solid fa-lock ml-2"></i>`;
-            }
-            
-            const warningBox = document.getElementById('already-completed-box');
-            if (warningBox) warningBox.classList.add('hidden');
-
-            showToast("已退出登入");
+            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            startBtn.disabled = true;
+            startBtn.innerHTML = '請先登入以開始測驗 <i class="fa-solid fa-lock ml-2"></i>';
+            document.getElementById('admin-dashboard-btn').classList.add('hidden');
         }
 
-        async function checkExistingSubmission(uid) {
-            const startBtn = document.getElementById('start-btn');
-            const warningBox = document.getElementById('already-completed-box');
-            const adminBtn = document.getElementById('admin-dashboard-btn');
-
-            // 管理員模式 (輸入 12345678)：允許無限制重複填寫與開啟後台看板
-            if (currentUser && currentUser.isAdmin) {
-                if (warningBox) warningBox.classList.add('hidden');
-                if (adminBtn) adminBtn.classList.remove('hidden');
-                if (startBtn) {
-                    startBtn.disabled = false;
-                    startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer";
-                    startBtn.innerHTML = `👑 管理員開始 / 重複測試 <i class="fa-solid fa-rotate-right ml-2"></i>`;
-                }
-                return;
-            }
-
-            if (adminBtn) adminBtn.classList.add('hidden');
-
-            // 一般受測者檢查：若已完成則禁止重複填寫
-            try {
-                if (window.firebaseDb && window.doc && window.getDoc) {
-                    const appId = window.appId || 'attachment-survey-app';
-                    const docRef = window.doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'submissions', uid);
-                    const docSnap = await window.getDoc(docRef);
-                    if (docSnap && docSnap.exists()) {
-                        if (warningBox) warningBox.classList.remove('hidden');
-                        if (startBtn) {
-                            startBtn.disabled = true;
-                            startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-slate-300 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-not-allowed";
-                            startBtn.innerHTML = `您已完成問卷 (不開放重複填寫) <i class="fa-solid fa-lock ml-2"></i>`;
-                        }
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.log("Check submission note:", e);
-            }
-
-            if (warningBox) warningBox.classList.add('hidden');
-            if (startBtn) {
-                startBtn.disabled = false;
-                startBtn.className = "w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer";
-                startBtn.innerHTML = `開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>`;
-            }
-        }
-
-        // Quiz Stage 1 Flow
         function startQuiz() {
-            if (!currentUser) {
-                showToast("請先完成 Google / 信箱身分驗證再開始測驗喔！");
-                openGoogleModal();
+            if(!mockUserProfile.email) {
+                handleGoogleLogin();
                 return;
             }
-
             document.getElementById('intro-card').classList.add('hidden');
-            document.getElementById('quiz-card').classList.remove('hidden');
-            currentQuestion = 0;
-            answers = new Array(16).fill(null);
-            showQuestion();
+            document.getElementById('demographic-card').classList.remove('hidden');
         }
 
-        function showQuestion() {
-            const q = questions[currentQuestion];
-            document.getElementById('question-text').innerText = `${currentQuestion + 1}. ${q.text}`;
-            document.getElementById('question-number').innerText = `題目 ${currentQuestion + 1}`;
-            document.getElementById('dimension-badge').innerText = `${q.name}維度`;
+        function backToIntro() {
+            document.getElementById('demographic-card').classList.add('hidden');
+            document.getElementById('intro-card').classList.remove('hidden');
+        }
 
-            const percent = ((currentQuestion + 1) / questions.length) * 100;
-            document.getElementById('progress-bar').style.width = `${percent}%`;
+        function selectDemoGender(gender) {
+            demographicData.gender = gender;
+            ['男', '女', '其他', '不願透露'].forEach(g => {
+                const btn = document.getElementById(`demo-gender-${g}`);
+                if(g === gender) {
+                    btn.className = "demo-gender-btn py-3 px-4 rounded-xl border-2 border-rose-400 bg-rose-50 text-rose-700 font-bold text-sm transition cursor-pointer shadow-sm";
+                } else {
+                    btn.className = "demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer";
+                }
+            });
+            checkDemographicComplete();
+        }
+
+        function selectDemoLevel(level) {
+            demographicData.level = level;
+            ['國中', '高中'].forEach(l => {
+                const btn = document.getElementById(`demo-level-${l}`);
+                if(l === level) {
+                    btn.className = "demo-level-btn py-3 px-4 rounded-xl border-2 border-rose-400 bg-rose-50 text-rose-700 font-bold text-sm transition cursor-pointer shadow-sm";
+                } else {
+                    btn.className = "demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer";
+                }
+            });
+            checkDemographicComplete();
+        }
+
+        function checkDemographicComplete() {
+            const nextBtn = document.getElementById('demographic-next-btn');
+            if(demographicData.gender && demographicData.level) {
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                nextBtn.disabled = false;
+            } else {
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                nextBtn.disabled = true;
+            }
+        }
+
+        function proceedToQuiz() {
+            document.getElementById('demographic-card').classList.add('hidden');
+            document.getElementById('quiz-card').classList.remove('hidden');
+            loadQuestion(0);
+        }
+
+        function loadQuestion(index) {
+            currentQuestion = index;
+            const q = questions[index];
+            
+            document.getElementById('question-number').innerText = `題目 ${index + 1}`;
+            document.getElementById('question-text').innerText = q.text;
+            
+            const badge = document.getElementById('dimension-badge');
+            badge.innerText = q.name;
+            if(q.dim === 'secure') badge.className = 'bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full font-bold';
+            if(q.dim === 'anxiety') badge.className = 'bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full font-bold';
+            if(q.dim === 'avoidance') badge.className = 'bg-sky-50 text-sky-600 px-2.5 py-1 rounded-full font-bold';
+            if(q.dim === 'fearful') badge.className = 'bg-purple-50 text-purple-600 px-2.5 py-1 rounded-full font-bold';
+
+            document.getElementById('progress-bar').style.width = `${((index + 1) / 16) * 100}%`;
+
+            for(let i=1; i<=5; i++) {
+                const btn = document.getElementById(`opt-${i}`);
+                btn.classList.remove('bg-rose-400', 'text-white', 'border-rose-400', 'shadow-md');
+                btn.classList.add('bg-slate-50', 'text-slate-700', 'border-slate-100');
+            }
+
+            const prevAns = answers[index];
+            if(prevAns !== null) {
+                const btn = document.getElementById(`opt-${prevAns}`);
+                btn.classList.remove('bg-slate-50', 'text-slate-700', 'border-slate-100');
+                btn.classList.add('bg-rose-400', 'text-white', 'border-rose-400', 'shadow-md');
+                enableNext();
+            } else {
+                disableNext();
+            }
 
             const prevBtn = document.getElementById('prev-btn');
-            if (currentQuestion === 0) {
-                prevBtn.classList.add('opacity-0', 'pointer-events-none');
-            } else {
-                prevBtn.classList.remove('opacity-0', 'pointer-events-none');
-            }
+            if(index === 0) prevBtn.classList.add('invisible');
+            else prevBtn.classList.remove('invisible');
 
             const nextBtnText = document.getElementById('next-btn-text');
-            if (currentQuestion === questions.length - 1) {
-                nextBtnText.innerText = "查看依附雷達圖";
-            } else {
-                nextBtnText.innerText = "下一題";
-            }
-
-            updateOptionStyles();
+            if(index === 15) nextBtnText.innerText = '看結果';
+            else nextBtnText.innerText = '下一題';
         }
 
-        function selectOption(score) {
-            answers[currentQuestion] = score;
-            updateOptionStyles();
+        function selectOption(val) {
+            answers[currentQuestion] = val;
+            loadQuestion(currentQuestion);
         }
 
-        function updateOptionStyles() {
-            const selectedScore = answers[currentQuestion];
-            for (let i = 1; i <= 5; i++) {
-                const btn = document.getElementById(`opt-${i}`);
-                if (btn) {
-                    if (selectedScore === i) {
-                        btn.className = "option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-rose-400 bg-rose-200 text-rose-800 font-bold text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none shadow-sm";
-                    } else {
-                        btn.className = "option-btn py-3.5 sm:py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 font-bold text-slate-700 text-base sm:text-lg flex flex-col items-center justify-center focus:outline-none";
-                    }
-                }
-            }
+        function enableNext() {
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            nextBtn.disabled = false;
+        }
+
+        function disableNext() {
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            nextBtn.disabled = true;
         }
 
         function nextQuestion() {
-            if (answers[currentQuestion] === null) {
-                showToast("請先選擇此題的分數喔！");
-                return;
-            }
-
-            if (currentQuestion < questions.length - 1) {
-                currentQuestion++;
-                showQuestion();
+            if(currentQuestion < 15) {
+                loadQuestion(currentQuestion + 1);
             } else {
                 calculateResults();
             }
         }
 
         function prevQuestion() {
-            if (currentQuestion > 0) {
-                currentQuestion--;
-                showQuestion();
+            if(currentQuestion > 0) {
+                loadQuestion(currentQuestion - 1);
             }
         }
 
         function calculateResults() {
-            let scores = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
+            calculatedScores = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
             
-            questions.forEach((q, idx) => {
-                const val = answers[idx] || 3;
-                scores[q.dim] += val;
-            });
-
-            calculatedScores = scores;
-
-            // Determine dominant type based on dimension scores
-            if (scores.anxiety >= 14 && scores.anxiety >= scores.avoidance && scores.anxiety >= scores.secure) {
-                dominantType = 'anxious';
-            } else if (scores.avoidance >= 14 && scores.avoidance >= scores.anxiety && scores.avoidance >= scores.secure) {
-                dominantType = 'avoidant';
-            } else if (scores.fearful >= 14 || (scores.anxiety >= 13 && scores.avoidance >= 13)) {
-                dominantType = 'fearful';
-            } else if (scores.secure >= scores.anxiety && scores.secure >= scores.avoidance) {
-                dominantType = 'secure';
-            } else {
-                const sorted = Object.keys(scores).sort((a,b) => scores[b] - scores[a]);
-                dominantType = sorted[0];
+            for(let i=0; i<16; i++) {
+                const dim = questions[i].dim;
+                calculatedScores[dim] += answers[i];
             }
 
-            const info = attachmentTypeData[dominantType];
+            let maxScore = -1;
+            for (const [key, value] of Object.entries(calculatedScores)) {
+                if (value > maxScore) {
+                    maxScore = value;
+                    dominantType = key;
+                }
+            }
+            showStage1Results();
+        }
 
-            document.getElementById('result-type').innerText = info.name;
-            document.getElementById('result-subtitle').innerText = info.subtitle;
-            document.getElementById('result-desc').innerText = info.desc;
-            document.getElementById('result-advice').innerText = info.advice;
-
-            document.getElementById('score-secure').innerText = `${scores.secure} / 20`;
-            document.getElementById('score-anxiety').innerText = `${scores.anxiety} / 20`;
-            document.getElementById('score-avoidance').innerText = `${scores.avoidance} / 20`;
-            document.getElementById('score-fearful').innerText = `${scores.fearful} / 20`;
-
-            const iconBox = document.getElementById('result-icon-bg');
-            iconBox.className = `w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 text-3xl shadow-sm ${info.colorClass}`;
-            iconBox.innerHTML = `<i class="fa-solid fa-heart-pulse"></i>`;
-
+        function showStage1Results() {
             document.getElementById('quiz-card').classList.add('hidden');
             document.getElementById('result-card').classList.remove('hidden');
 
-            renderRadarChart(scores);
+            const resultData = attachmentTypeData[dominantType];
+            
+            document.getElementById('result-type').innerText = resultData.name;
+            document.getElementById('result-subtitle').innerText = resultData.subtitle;
+            document.getElementById('result-icon-bg').innerHTML = resultData.icon;
+            document.getElementById('result-icon-bg').className = `w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 text-3xl shadow-sm ${resultData.colorClass}`;
+            
+            document.getElementById('result-desc').innerText = resultData.desc;
+            document.getElementById('result-advice').innerText = resultData.advice;
+
+            document.getElementById('score-secure').innerText = `${calculatedScores.secure} / 20`;
+            document.getElementById('score-anxiety').innerText = `${calculatedScores.anxiety} / 20`;
+            document.getElementById('score-avoidance').innerText = `${calculatedScores.avoidance} / 20`;
+            document.getElementById('score-fearful').innerText = `${calculatedScores.fearful} / 20`;
+
+            renderChart();
         }
 
-        function renderRadarChart(scores) {
-            const ctx = document.getElementById('radarChart');
-            if (!ctx) return;
-
+        function renderChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
             if (radarChartInstance) {
                 radarChartInstance.destroy();
             }
@@ -1003,658 +1026,522 @@ function doPost(e) {
                 data: {
                     labels: ['安全信任', '焦慮敏感', '逃避獨立', '恐懼矛盾'],
                     datasets: [{
-                        label: '依附維度得分',
-                        data: [scores.secure, scores.anxiety, scores.avoidance, scores.fearful],
-                        backgroundColor: 'rgba(244, 63, 94, 0.2)',
-                        borderColor: 'rgba(244, 63, 94, 0.8)',
-                        pointBackgroundColor: '#f43f5e',
+                        label: '依附傾向分數',
+                        data: [
+                            calculatedScores.secure,
+                            calculatedScores.anxiety,
+                            calculatedScores.avoidance,
+                            calculatedScores.fearful
+                        ],
+                        backgroundColor: 'rgba(251, 113, 133, 0.2)',
+                        borderColor: 'rgba(251, 113, 133, 1)',
+                        pointBackgroundColor: 'rgba(251, 113, 133, 1)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#f43f5e',
-                        borderWidth: 2.5
+                        pointHoverBorderColor: 'rgba(251, 113, 133, 1)',
+                        borderWidth: 2,
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     scales: {
                         r: {
-                            min: 0,
-                            max: 20,
-                            ticks: { stepSize: 5, display: false },
+                            angleLines: { color: 'rgba(0, 0, 0, 0.05)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
                             pointLabels: {
                                 font: { family: "'Zen Maru Gothic', sans-serif", size: 12, weight: 'bold' },
-                                color: '#475569'
-                            }
+                                color: '#64748b'
+                            },
+                            ticks: { display: false, min: 0, max: 20, stepSize: 4 }
                         }
                     },
-                    plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { family: "'Zen Maru Gothic', sans-serif", size: 13 },
+                            bodyFont: { family: "'Zen Maru Gothic', sans-serif", size: 13 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    }
                 }
             });
         }
 
-        // Quiz Stage 2 Flow
         function startStage2() {
             document.getElementById('result-card').classList.add('hidden');
             document.getElementById('stage2-quiz-card').classList.remove('hidden');
 
-            if (dominantType === 'anxious') {
+            if(dominantType === 'anxiety') {
                 stage2QuestionsList = stage2Category2;
-                document.getElementById('s2-type-badge').innerText = "第二階段：焦慮型依附同儕社交評估 (二類)";
-                document.getElementById('s2-type-badge').className = "bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold text-xs";
+                document.getElementById('s2-type-badge').innerText = "第二階段：二類 (焦慮型) 深度評估";
+                document.getElementById('s2-type-badge').className = "bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold";
             } else {
                 stage2QuestionsList = stage2Category1;
-                document.getElementById('s2-type-badge').innerText = "第二階段：同儕社交關係與界線評估 (一類)";
-                document.getElementById('s2-type-badge').className = "bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold text-xs";
+                document.getElementById('s2-type-badge').innerText = "第二階段：一類 (非焦慮型) 深度評估";
+                document.getElementById('s2-type-badge').className = "bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold";
             }
 
-            stage2CurrentQuestion = 0;
             stage2Answers = new Array(stage2QuestionsList.length).fill(null);
             document.getElementById('s2-question-total').innerText = ` / ${stage2QuestionsList.length}`;
-
-            showStage2Question();
+            
+            loadStage2Question(0);
         }
 
-        function showStage2Question() {
-            const currentObj = stage2QuestionsList[stage2CurrentQuestion];
-            const text = typeof currentObj === 'string' ? currentObj : currentObj.text;
-            const options = (typeof currentObj === 'object' && currentObj.options) ? currentObj.options : ["非常有同感", "符合", "普通", "不太符合", "完全不符合"];
+        function loadStage2Question(index) {
+            stage2CurrentQuestion = index;
+            const q = stage2QuestionsList[index];
+            
+            document.getElementById('s2-question-number').innerText = `題目 ${index + 1}`;
+            document.getElementById('s2-question-text').innerText = q.text;
+            document.getElementById('s2-progress-bar').style.width = `${((index + 1) / stage2QuestionsList.length) * 100}%`;
 
-            document.getElementById('s2-question-text').innerText = text;
-            document.getElementById('s2-question-number').innerText = `題目 ${stage2CurrentQuestion + 1}`;
-
-            const percent = ((stage2CurrentQuestion + 1) / stage2QuestionsList.length) * 100;
-            document.getElementById('s2-progress-bar').style.width = `${percent}%`;
-
-            // 統一第二階段所有題目的選項樣式
             const container = document.getElementById('s2-options-container');
-            const selectedVal = stage2Answers[stage2CurrentQuestion];
+            container.innerHTML = '';
 
-            let html = `<div class="space-y-2.5 sm:space-y-3">`;
-            options.forEach((optText, idx) => {
-                const isSelected = selectedVal === (idx + 1);
-                const optLetter = String.fromCharCode(65 + idx); // A, B, C, D, E...
+            q.options.forEach((optText, optIndex) => {
+                const isSelected = stage2Answers[index] === optText;
                 
-                const btnClass = isSelected 
-                    ? "py-3.5 px-4 sm:px-5 rounded-2xl border-2 border-indigo-500 bg-indigo-50/90 text-indigo-950 font-bold text-sm sm:text-base shadow-sm flex items-center justify-between transition-all duration-200" 
-                    : "py-3.5 px-4 sm:px-5 rounded-2xl border-2 border-slate-100 bg-slate-50/80 hover:bg-indigo-50/50 hover:border-indigo-200 font-medium text-slate-700 text-sm sm:text-base flex items-center justify-between transition-all duration-200 cursor-pointer";
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-5 py-4 rounded-xl border-2 transition font-bold text-sm sm:text-base cursor-pointer focus:outline-none ${isSelected ? 'bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'}`;
+                btn.onclick = () => selectStage2Option(optText);
                 
-                const badgeClass = isSelected
-                    ? "w-7 h-7 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm"
-                    : "w-7 h-7 rounded-full bg-slate-200/80 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0";
+                const indicator = document.createElement('div');
+                indicator.className = `w-4 h-4 rounded-full border-2 mr-3 inline-block align-middle ${isSelected ? 'border-indigo-500 bg-indigo-500' : 'border-slate-300'}`;
                 
-                const checkIcon = isSelected 
-                    ? '<i class="fa-solid fa-circle-check text-indigo-500 text-lg ml-2 shrink-0"></i>' 
-                    : '<i class="fa-regular fa-circle text-slate-300 text-lg ml-2 shrink-0"></i>';
+                const textSpan = document.createElement('span');
+                textSpan.className = 'align-middle';
+                textSpan.innerText = optText;
 
-                html += `
-                    <button onclick="selectStage2Option(${idx + 1})" class="option-btn w-full text-left ${btnClass}">
-                        <div class="flex items-center gap-3">
-                            <span class="${badgeClass}">${optLetter}</span>
-                            <span>${optText}</span>
-                        </div>
-                        ${checkIcon}
-                    </button>
-                `;
+                btn.appendChild(indicator);
+                btn.appendChild(textSpan);
+                container.appendChild(btn);
             });
-            html += `</div>`;
-            container.innerHTML = html;
+
+            if(stage2Answers[index] !== null) {
+                enableS2Next();
+            } else {
+                disableS2Next();
+            }
 
             const prevBtn = document.getElementById('s2-prev-btn');
-            if (stage2CurrentQuestion === 0) {
-                prevBtn.classList.add('opacity-0', 'pointer-events-none');
-            } else {
-                prevBtn.classList.remove('opacity-0', 'pointer-events-none');
-            }
+            if(index === 0) prevBtn.classList.add('invisible');
+            else prevBtn.classList.remove('invisible');
 
             const nextBtnText = document.getElementById('s2-next-btn-text');
-            if (stage2CurrentQuestion === stage2QuestionsList.length - 1) {
-                nextBtnText.innerText = "完成並送出數據";
-            } else {
-                nextBtnText.innerText = "下一題";
-            }
+            if(index === stage2QuestionsList.length - 1) nextBtnText.innerText = '送出資料';
+            else nextBtnText.innerText = '下一題';
         }
 
-        function selectStage2Option(score) {
-            stage2Answers[stage2CurrentQuestion] = score;
-            showStage2Question();
+        function selectStage2Option(text) {
+            stage2Answers[stage2CurrentQuestion] = text;
+            loadStage2Question(stage2CurrentQuestion);
+        }
+
+        function enableS2Next() {
+            const nextBtn = document.getElementById('s2-next-btn');
+            nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            nextBtn.disabled = false;
+        }
+
+        function disableS2Next() {
+            const nextBtn = document.getElementById('s2-next-btn');
+            nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            nextBtn.disabled = true;
         }
 
         function nextStage2Question() {
-            if (stage2Answers[stage2CurrentQuestion] === null) {
-                showToast("請先選擇本題的分數或選項唷！");
-                return;
-            }
-
-            if (stage2CurrentQuestion < stage2QuestionsList.length - 1) {
-                stage2CurrentQuestion++;
-                showStage2Question();
+            if(stage2CurrentQuestion < stage2QuestionsList.length - 1) {
+                loadStage2Question(stage2CurrentQuestion + 1);
             } else {
-                finishStage2();
+                submitFinalResults();
             }
         }
 
         function prevStage2Question() {
-            if (stage2CurrentQuestion > 0) {
-                stage2CurrentQuestion--;
-                showStage2Question();
+            if(stage2CurrentQuestion > 0) {
+                loadStage2Question(stage2CurrentQuestion - 1);
             }
         }
 
-        async function finishStage2() {
-            const payload = {
-                uid: currentUser.uid,
-                userEmail: currentUser.email || '',
-                userName: currentUser.displayName || '',
-                stage1Answers: answers,
-                stage1Scores: calculatedScores,
+        async function submitFinalResults() {
+            showToast("正在加密送出數據...");
+            
+            const submitData = {
+                userEmail: mockUserProfile.email,
+                userName: mockUserProfile.name,
+                gender: demographicData.gender,
+                schoolLevel: demographicData.level,
+                submittedAt: new Date().toISOString(),
                 dominantType: dominantType,
-                stage2Category: dominantType === 'anxious' ? 'Category2_Anxious' : 'Category1_NonAnxious',
-                stage2Answers: stage2Answers,
-                submittedAt: new Date().toISOString()
+                scores: calculatedScores,
+                stage2Category: dominantType === 'anxiety' ? 'Category 2 (Anxious)' : 'Category 1 (Non-Anxious)',
+                stage2Answers: stage2Answers
             };
 
-            // Save responses to Cloud Firestore Database
-            try {
-                if (window.firebaseDb && window.doc && window.setDoc && currentUser) {
-                    const appId = window.appId || 'attachment-survey-app';
-                    const subRef = window.doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'submissions', currentUser.uid);
-                    await window.setDoc(subRef, payload, { merge: true });
+            if(window.firebaseDb && currentUser) {
+                try {
+                    const colRef = window.collection(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses');
+                    const docRef = await window.addDoc(colRef, submitData);
+                    submitData.id = docRef.id;
+                } catch(e) {
+                    console.error("Firebase save error", e);
                 }
-            } catch (err) {
-                console.log("Save survey data note:", err);
             }
 
-            // Real-time Auto Sync to Google Sheets if configured
-            syncToGoogleSheets(payload);
+            if(googleSheetsWebhookUrl) {
+                try {
+                    await fetch(googleSheetsWebhookUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(submitData)
+                    });
+                } catch(e) {
+                    console.error("Webhook error", e);
+                }
+            }
 
             document.getElementById('stage2-quiz-card').classList.add('hidden');
             document.getElementById('stage2-result-card').classList.remove('hidden');
-            showToast("感謝填寫！數據已成功提交並自動同步至雲端。");
-        }
-
-        async function syncToGoogleSheets(payload) {
-            const url = googleSheetsWebhookUrl || localStorage.getItem('attachment_webhook_url');
-            if (!url) return;
-
-            try {
-                await fetch(url, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                console.log("Auto synced to Google Sheets successfully.");
-            } catch (e) {
-                console.log("Webhook auto-sync note:", e);
-            }
-        }
-
-        function switchAdminTab(tabName) {
-            activeAdminTab = tabName;
             
-            const tabs = ['analytics', 'table', 'sync'];
-            tabs.forEach(t => {
-                const btn = document.getElementById(`tab-btn-${t}`);
-                const content = document.getElementById(`admin-tab-content-${t}`);
-                
-                if (t === tabName) {
-                    if (btn) btn.className = "px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-indigo-600 text-indigo-600 transition flex items-center gap-2 cursor-pointer";
-                    if (content) content.classList.remove('hidden');
-                } else {
-                    if (btn) btn.className = "px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer";
-                    if (content) content.classList.add('hidden');
-                }
-            });
-
-            if (tabName === 'analytics') {
-                renderAdminAnalytics();
-            } else if (tabName === 'table') {
-                renderAdminTable();
-            } else if (tabName === 'sync') {
-                const input = document.getElementById('sheets-webhook-url');
-                if (input) input.value = googleSheetsWebhookUrl;
+            if(!isAdmin) {
+                document.getElementById('already-completed-box').classList.remove('hidden');
             }
-        }
-
-        function saveWebhookUrl() {
-            const input = document.getElementById('sheets-webhook-url');
-            if (input) {
-                googleSheetsWebhookUrl = input.value.trim();
-                localStorage.setItem('attachment_webhook_url', googleSheetsWebhookUrl);
-                showToast("Google 試算表 Webhook 網址已成功儲存！");
-            }
-        }
-
-        function copyAppsScriptCode() {
-            const code = document.getElementById('apps-script-code').innerText;
-            const tempInput = document.createElement('textarea');
-            tempInput.value = code;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            showToast("Apps Script 代碼已複製！請貼至 Google 試算表「擴充功能 > Apps Script」中");
-        }
-
-        function renderAdminAnalytics() {
-            const container = document.getElementById('analytics-container');
-            if (!container) return;
-
-            if (adminFetchedRecords.length === 0) {
-                container.innerHTML = `
-                    <div class="p-10 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">
-                        <i class="fa-solid fa-chart-bar text-4xl mb-3 text-slate-300"></i>
-                        <div class="font-bold text-slate-700 text-base mb-1">尚無數據進行統計分析</div>
-                        <div class="text-xs">當有受測者提交問卷後，這裡將會自動生成如同 Google 表單一樣的選項比例分析。</div>
-                    </div>
-                `;
-                return;
-            }
-
-            const total = adminFetchedRecords.length;
-
-            // Compute Stage 1 Attachment Style Distributions
-            const styleCounts = { secure: 0, anxious: 0, avoidant: 0, fearful: 0 };
-            adminFetchedRecords.forEach(r => {
-                const t = r.dominantType || 'secure';
-                styleCounts[t] = (styleCounts[t] || 0) + 1;
-            });
-
-            // Filter records into Category 1 (Non-anxious) and Category 2 (Anxious)
-            const cat1Records = adminFetchedRecords.filter(r => r.stage2Category === 'Category1_NonAnxious' || r.dominantType !== 'anxious');
-            const cat2Records = adminFetchedRecords.filter(r => r.stage2Category === 'Category2_Anxious' || r.dominantType === 'anxious');
-
-            let html = `
-                <!-- Global Overview Card -->
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                    <h4 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-pie-chart text-rose-500"></i> 第一階段：受測者依附類型分布總覽 (共 ${total} 人)
-                    </h4>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div class="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-100">
-                            <span class="text-xs text-emerald-800 font-bold block mb-1">安全型依附</span>
-                            <div class="text-2xl font-black text-emerald-700">${styleCounts.secure} <span class="text-xs font-normal">人</span></div>
-                            <div class="text-[11px] text-emerald-600 mt-1 font-bold">${((styleCounts.secure/total)*100).toFixed(1)}%</div>
-                        </div>
-                        <div class="bg-amber-50/80 p-4 rounded-2xl border border-amber-100">
-                            <span class="text-xs text-amber-800 font-bold block mb-1">焦慮型依附</span>
-                            <div class="text-2xl font-black text-amber-700">${styleCounts.anxious} <span class="text-xs font-normal">人</span></div>
-                            <div class="text-[11px] text-amber-600 mt-1 font-bold">${((styleCounts.anxious/total)*100).toFixed(1)}%</div>
-                        </div>
-                        <div class="bg-sky-50/80 p-4 rounded-2xl border border-sky-100">
-                            <span class="text-xs text-sky-800 font-bold block mb-1">逃避型依附</span>
-                            <div class="text-2xl font-black text-sky-700">${styleCounts.avoidant} <span class="text-xs font-normal">人</span></div>
-                            <div class="text-[11px] text-sky-600 mt-1 font-bold">${((styleCounts.avoidant/total)*100).toFixed(1)}%</div>
-                        </div>
-                        <div class="bg-purple-50/80 p-4 rounded-2xl border border-purple-100">
-                            <span class="text-xs text-purple-800 font-bold block mb-1">恐懼型依附</span>
-                            <div class="text-2xl font-black text-purple-700">${styleCounts.fearful} <span class="text-xs font-normal">人</span></div>
-                            <div class="text-[11px] text-purple-600 mt-1 font-bold">${((styleCounts.fearful/total)*100).toFixed(1)}%</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Helper to render a question analytics block
-            function renderQuestionCard(qIndex, qTitle, optionsList, recordsList, badgeColorClass) {
-                const subTotal = recordsList.length;
-                if (subTotal === 0) return '';
-
-                const counts = new Array(optionsList.length).fill(0);
-                recordsList.forEach(r => {
-                    if (Array.isArray(r.stage2Answers) && r.stage2Answers[qIndex] !== undefined && r.stage2Answers[qIndex] !== null) {
-                        const optIdx = r.stage2Answers[qIndex] - 1;
-                        if (optIdx >= 0 && optIdx < optionsList.length) {
-                            counts[optIdx]++;
-                        }
-                    }
-                });
-
-                let optionsHtml = '';
-                optionsList.forEach((optText, i) => {
-                    const count = counts[i];
-                    const pct = subTotal > 0 ? ((count / subTotal) * 100).toFixed(1) : 0;
-                    const optLetter = String.fromCharCode(65 + i);
-
-                    optionsHtml += `
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-medium text-slate-700">
-                                <span><strong class="text-indigo-600 mr-1.5">${optLetter}.</strong> ${optText}</span>
-                                <span class="font-bold text-slate-800">${pct}% <span class="text-slate-400 text-[10px]">(${count}票)</span></span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden flex">
-                                <div class="bg-indigo-500 h-3 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                return `
-                    <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                        <div class="flex items-start justify-between gap-3">
-                            <h5 class="font-bold text-slate-800 text-sm sm:text-base leading-snug">
-                                ${qTitle}
-                            </h5>
-                            <span class="text-[10px] ${badgeColorClass} font-bold px-2.5 py-1 rounded-full shrink-0">
-                                回覆率: ${subTotal} 人
-                            </span>
-                        </div>
-                        <div class="space-y-3 pt-1">
-                            ${optionsHtml}
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Section 1: Category 1 (一類 - 非焦慮型) Stage 2 Questions Analytics
-            html += `
-                <div class="pt-2">
-                    <div class="bg-indigo-900 text-white p-4 rounded-2xl mb-4 flex items-center justify-between shadow-md">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-shield-halved text-indigo-300 text-lg"></i>
-                            <h4 class="font-bold text-sm sm:text-base">第二階段：一類 (非焦慮型) 同儕關係評估統計 (共 ${cat1Records.length} 人)</h4>
-                        </div>
-                        <span class="text-xs bg-indigo-800 text-indigo-200 px-3 py-1 rounded-full font-bold">一類問卷數據分析</span>
-                    </div>
-                    <div class="space-y-4">
-            `;
-            stage2Category1.forEach((qObj, idx) => {
-                html += renderQuestionCard(idx, qObj.text, qObj.options, cat1Records, 'bg-indigo-50 text-indigo-600');
-            });
-            html += `</div></div>`;
-
-            // Section 2: Category 2 (二類 - 焦慮型) Stage 2 Questions Analytics
-            html += `
-                <div class="pt-4">
-                    <div class="bg-amber-900 text-white p-4 rounded-2xl mb-4 flex items-center justify-between shadow-md">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-heart-crack text-amber-300 text-lg"></i>
-                            <h4 class="font-bold text-sm sm:text-base">第二階段：二類 (焦慮型) 同儕社交情境統計 (共 ${cat2Records.length} 人)</h4>
-                        </div>
-                        <span class="text-xs bg-amber-800 text-amber-200 px-3 py-1 rounded-full font-bold">二類專屬分析</span>
-                    </div>
-                    <div class="space-y-4">
-            `;
-            stage2Category2.forEach((qObj, idx) => {
-                html += renderQuestionCard(idx, qObj.text, qObj.options, cat2Records, 'bg-amber-50 text-amber-700');
-            });
-            html += `</div></div>`;
-
-            container.innerHTML = html;
-        }
-
-        async function fetchAdminData() {
-            const tbody = document.getElementById('admin-table-body');
-            if (tbody) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="p-8 text-center text-slate-400">
-                            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-indigo-500"></i>
-                            <div>正在同步與載入專題研究數據...</div>
-                        </td>
-                    </tr>
-                `;
-            }
-
-            adminFetchedRecords = [];
-
-            try {
-                if (window.firebaseDb && window.collection && window.getDocs) {
-                    const appId = window.appId || 'attachment-survey-app';
-                    const subCol = window.collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'submissions');
-                    const querySnapshot = await window.getDocs(subCol);
-
-                    querySnapshot.forEach((docSnap) => {
-                        const data = docSnap.data();
-                        data.docId = docSnap.id;
-                        adminFetchedRecords.push(data);
-                    });
-                }
-            } catch (err) {
-                console.log("Fetch admin data notice:", err);
-            }
-
-            if (activeAdminTab === 'analytics') {
-                renderAdminAnalytics();
-            }
-            renderAdminTable();
-        }
-
-        // 安全精準的刪除數據函數
-        async function deleteRecord(docId) {
-            if (!docId) return;
-
-            const targetRecord = adminFetchedRecords.find(r => (r.docId || r.uid) === docId);
-            const userName = targetRecord ? (targetRecord.userName || '未命名受測者') : '這筆受測資料';
-
-            if (!confirm(`確定要刪除「${userName}」這筆受測資料嗎？此操作將從雲端資料庫中移除。`)) {
-                return;
-            }
-
-            try {
-                if (window.firebaseDb && window.doc && window.deleteDoc) {
-                    const appId = window.appId || 'attachment-survey-app';
-                    const docRef = window.doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'submissions', docId);
-                    await window.deleteDoc(docRef);
-                }
-            } catch (err) {
-                console.log("Cloud delete notice:", err);
-            }
-
-            // 即時更新本地數據陣列並刷新畫面與統計
-            adminFetchedRecords = adminFetchedRecords.filter(r => (r.docId || r.uid) !== docId);
-            renderAdminTable();
-            if (activeAdminTab === 'analytics') {
-                renderAdminAnalytics();
-            }
-            showToast(`已成功刪除受測資料 (${userName})`);
-        }
-
-        function renderAdminTable() {
-            const tbody = document.getElementById('admin-table-body');
-            const totalStat = document.getElementById('admin-stat-total');
-            const anxiousStat = document.getElementById('admin-stat-anxious');
-            const nonAnxiousStat = document.getElementById('admin-stat-nonanxious');
-            const countText = document.getElementById('admin-record-count');
-
-            if (countText) countText.innerText = adminFetchedRecords.length;
-            if (totalStat) totalStat.innerText = `${adminFetchedRecords.length} 份`;
-
-            let anxiousCount = 0;
-            let nonAnxiousCount = 0;
-
-            if (adminFetchedRecords.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="p-8 text-center text-slate-400">
-                            <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-300"></i>
-                            <div>目前研究資料庫中尚無受測者提交紀錄。</div>
-                        </td>
-                    </tr>
-                `;
-                if (anxiousStat) anxiousStat.innerText = '0 人';
-                if (nonAnxiousStat) nonAnxiousStat.innerText = '0 人';
-                return;
-            }
-
-            // Sort by submittedAt descending
-            adminFetchedRecords.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
-
-            let html = '';
-            adminFetchedRecords.forEach((rec, idx) => {
-                const isAnxious = (rec.stage2Category === 'Category2_Anxious' || rec.dominantType === 'anxious');
-                if (isAnxious) anxiousCount++; else nonAnxiousCount++;
-
-                const categoryLabel = isAnxious 
-                    ? `<span class="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-md font-bold text-[11px] border border-amber-200"><i class="fa-solid fa-fire mr-1"></i>二類 (焦慮型)</span>`
-                    : `<span class="bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-md font-bold text-[11px] border border-indigo-200"><i class="fa-solid fa-shield mr-1"></i>一類 (非焦慮)</span>`;
-
-                const typeNames = {
-                    secure: '安全型',
-                    anxious: '焦慮型',
-                    avoidant: '逃避型',
-                    fearful: '恐懼型'
-                };
-
-                const typeBadge = `<span class="font-bold text-slate-800">${typeNames[rec.dominantType] || rec.dominantType || '已評估'}</span>`;
-                
-                let s2AnswersSummary = '無';
-                if (Array.isArray(rec.stage2Answers)) {
-                    s2AnswersSummary = rec.stage2Answers.map((ans, i) => `Q${i+1}:${ans !== null ? ans : '-'}`).join(' | ');
-                }
-
-                const dateDisplay = rec.submittedAt ? new Date(rec.submittedAt).toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '未紀錄';
-
-                const recordId = rec.docId || rec.uid;
-
-                html += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-bold text-slate-400">${idx + 1}</td>
-                        <td class="p-3 font-bold text-slate-800">${rec.userName || '未命名'}</td>
-                        <td class="p-3 text-slate-500 text-[11px] font-mono">${rec.userEmail || '無'}</td>
-                        <td class="p-3">${typeBadge}</td>
-                        <td class="p-3">${categoryLabel}</td>
-                        <td class="p-3 font-mono text-slate-600 text-[11px] bg-slate-50/80 rounded-lg p-1.5 border border-slate-100">${s2AnswersSummary}</td>
-                        <td class="p-3 text-slate-400 text-[11px] whitespace-nowrap">${dateDisplay}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="deleteRecord('${recordId}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold transition flex items-center gap-1 mx-auto cursor-pointer" title="手動刪除此筆資料">
-                                <i class="fa-solid fa-trash-can text-xs"></i> 刪除
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            tbody.innerHTML = html;
-            if (anxiousStat) anxiousStat.innerText = `${anxiousCount} 人`;
-            if (nonAnxiousStat) nonAnxiousStat.innerText = `${nonAnxiousCount} 人`;
-        }
-
-        // Export data to CSV file
-        function exportToCSV() {
-            if (adminFetchedRecords.length === 0) {
-                showToast("目前沒有可匯出的紀錄資料");
-                return;
-            }
-
-            let csv = '\uFEFF';
-            csv += '序號,受測者姓名,Email/帳號代碼,第一階段主要依附類型,第二階段分類,第二階段各題選項明細,提交時間\n';
-
-            adminFetchedRecords.forEach((rec, idx) => {
-                const s2AnsStr = Array.isArray(rec.stage2Answers) ? rec.stage2Answers.map((a, i) => `Q${i+1}:${a}`).join('; ') : '';
-                const timeStr = rec.submittedAt ? new Date(rec.submittedAt).toLocaleString('zh-TW') : '';
-                
-                csv += `"${idx + 1}","${rec.userName || ''}","${rec.userEmail || ''}","${rec.dominantType || ''}","${rec.stage2Category || ''}","${s2AnsStr}","${timeStr}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `專題問卷數據紀錄_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showToast("CSV 檔案已成功下載！可直接於 Excel 或 Google 試算表開啟");
-        }
-
-        // Copy Tab-Separated Values for instant paste into Google Sheets
-        function copyForGoogleSheets() {
-            if (adminFetchedRecords.length === 0) {
-                showToast("目前沒有可複製的紀錄資料");
-                return;
-            }
-
-            let tsv = '序號\t受測者姓名\tEmail/帳號代碼\t第一階段主要依附類型\t第二階段分類\t第二階段各題選項明細\t提交時間\n';
-
-            adminFetchedRecords.forEach((rec, idx) => {
-                const s2AnsStr = Array.isArray(rec.stage2Answers) ? rec.stage2Answers.map((a, i) => `Q${i+1}:${a}`).join('; ') : '';
-                const timeStr = rec.submittedAt ? new Date(rec.submittedAt).toLocaleString('zh-TW') : '';
-                tsv += `${idx + 1}\t${rec.userName || ''}\t${rec.userEmail || ''}\t${rec.dominantType || ''}\t${rec.stage2Category || ''}\t${s2AnsStr}\t${timeStr}\n`;
-            });
-
-            const tempInput = document.createElement('textarea');
-            tempInput.value = tsv;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-
-            showToast("已複製表格！可以直接在 Google 試算表中點擊 A1 儲存格並按 Ctrl+V 貼上");
         }
 
         function restartQuiz() {
             currentQuestion = 0;
+            demographicData = { gender: '', level: '' };
             answers = new Array(16).fill(null);
             document.getElementById('result-card').classList.add('hidden');
             document.getElementById('intro-card').classList.remove('hidden');
         }
 
-        function copyResult() {
-            const type = document.getElementById('result-type').innerText;
-            const textToCopy = `我在【專題依附風格與同儕關係測驗】中測出了「${type}」！快來探索你的親密與同儕互動風格吧！`;
+        function openAdminDashboard() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('admin-modal').classList.remove('opacity-0', 'pointer-events-none');
+            }, 10);
+            fetchAdminData();
+            
+            const storedUrl = localStorage.getItem('attachment_webhook_url');
+            if(storedUrl) {
+                document.getElementById('sheets-webhook-url').value = storedUrl;
+                googleSheetsWebhookUrl = storedUrl;
+            }
+        }
 
+        function closeAdminDashboard() {
+            document.getElementById('admin-modal').classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                document.getElementById('admin-modal').classList.add('hidden');
+            }, 300);
+        }
+
+        function switchAdminTab(tabName) {
+            activeAdminTab = tabName;
+            
+            ['analytics', 'table', 'sync'].forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`admin-tab-content-${t}`);
+                
+                btn.classList.remove('border-indigo-600', 'text-indigo-600');
+                btn.classList.add('border-transparent', 'text-slate-500');
+                content.classList.add('hidden');
+            });
+
+            document.getElementById(`tab-btn-${tabName}`).classList.remove('border-transparent', 'text-slate-500');
+            document.getElementById(`tab-btn-${tabName}`).classList.add('border-indigo-600', 'text-indigo-600');
+            document.getElementById(`admin-tab-content-${tabName}`).classList.remove('hidden');
+        }
+
+        async function fetchAdminData() {
+            if(!window.firebaseDb) {
+                showToast("Firebase 連線尚未建立");
+                return;
+            }
+            
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>資料讀取中...</div></td></tr>`;
+
+            try {
+                const colRef = window.collection(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses');
+                const snapshot = await window.getDocs(colRef);
+                
+                adminFetchedRecords = [];
+                let typeCounts = { anxious: 0, nonanxious: 0 };
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    data.docId = docSnap.id;
+                    adminFetchedRecords.push(data);
+                    
+                    if(data.dominantType === 'anxiety') {
+                        typeCounts.anxious++;
+                    } else {
+                        typeCounts.nonanxious++;
+                    }
+                });
+
+                document.getElementById('admin-stat-total').innerText = `${adminFetchedRecords.length} 份`;
+                document.getElementById('admin-record-count').innerText = adminFetchedRecords.length;
+                document.getElementById('admin-stat-anxious').innerText = `${typeCounts.anxious} 人`;
+                document.getElementById('admin-stat-nonanxious').innerText = `${typeCounts.nonanxious} 人`;
+
+                renderAdminTable();
+                renderAnalytics();
+
+            } catch(e) {
+                console.error(e);
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-500">無法讀取資料，請確認權限或連線狀態</td></tr>`;
+            }
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            
+            if(adminFetchedRecords.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">尚無問卷資料</td></tr>`;
+                return;
+            }
+
+            adminFetchedRecords.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt)).forEach(record => {
+                const tr = document.createElement('tr');
+                
+                const typeName = attachmentTypeData[record.dominantType]?.name || record.dominantType;
+                const catName = record.stage2Category === 'Category 2 (Anxious)' ? '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold">二類(焦慮)</span>' : '<span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded font-bold">一類(非焦慮)</span>';
+                const demoInfo = `${record.gender || '未填'} / ${record.schoolLevel || '未填'}`;
+                
+                tr.innerHTML = `
+                    <td class="p-3 font-medium text-slate-800">${record.userName || '未知'}</td>
+                    <td class="p-3">${record.userEmail}</td>
+                    <td class="p-3">${demoInfo}</td>
+                    <td class="p-3">${typeName}</td>
+                    <td class="p-3">${catName}</td>
+                    <td class="p-3 text-slate-500">${new Date(record.submittedAt).toLocaleString()}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteRecord('${record.docId}')" class="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-lg transition text-xs cursor-pointer" title="刪除此筆記錄">
+                            <i class="fa-solid fa-trash-can"></i> 刪除
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function deleteRecord(docId) {
+            if(!docId) {
+                showToast("無效的記錄 ID");
+                return;
+            }
+            if(!confirm("確定要刪除這筆問卷記錄嗎？")) return;
+
+            try {
+                const docRef = window.doc(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses', docId);
+                await window.deleteDoc(docRef);
+                showToast("記錄已成功刪除");
+                fetchAdminData();
+            } catch(e) {
+                console.error("Delete error", e);
+                showToast("刪除失敗，請檢查權限");
+            }
+        }
+
+        function renderAnalytics() {
+            const container = document.getElementById('analytics-container');
+            container.innerHTML = '';
+
+            if(adminCharts.length > 0) {
+                adminCharts.forEach(c => c.destroy());
+                adminCharts = [];
+            }
+
+            if(adminFetchedRecords.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm">目前尚無足夠資料以產生統計圖表</div>`;
+                return;
+            }
+
+            // 1. Attachment Style Distribution Bar Chart
+            let counts = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
+            adminFetchedRecords.forEach(r => {
+                if(counts[r.dominantType] !== undefined) counts[r.dominantType]++;
+            });
+
+            const card1 = document.createElement('div');
+            card1.className = 'bg-white p-6 rounded-2xl border border-slate-200 shadow-sm';
+            card1.innerHTML = `
+                <h4 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-bar text-indigo-500"></i> 第一階段依附類型分佈統計
+                </h4>
+                <div class="relative w-full h-64 flex items-center justify-center">
+                    <canvas id="adminChartStyle"></canvas>
+                </div>
+            `;
+            container.appendChild(card1);
+
+            const ctx1 = document.getElementById('adminChartStyle').getContext('2d');
+            const chart1 = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['安全型', '焦慮型', '逃避型', '恐懼矛盾型'],
+                    datasets: [{
+                        label: '人數',
+                        data: [counts.secure, counts.anxiety, counts.avoidance, counts.fearful],
+                        backgroundColor: ['#10b981', '#f59e0b', '#0ea5e9', '#8b5cf6'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+            adminCharts.push(chart1);
+
+            // 2. Stage 2 Analysis Header & Breakdown by Category
+            const s2Header = document.createElement('div');
+            s2Header.className = 'pt-4 border-t border-slate-200';
+            s2Header.innerHTML = `
+                <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-square-poll-vertical text-indigo-600"></i> 第二階段詳細選項統計分析 (一類與二類)
+                </h3>
+                <p class="text-xs text-slate-500 mb-4">以下自動統計所有受測者在第二階段各題目的選項分佈百分比。</p>
+            `;
+            container.appendChild(s2Header);
+
+            // Filter records by category for Stage 2
+            const cat1Records = adminFetchedRecords.filter(r => r.stage2Category === 'Category 1 (Non-Anxious)' && Array.isArray(r.stage2Answers));
+            const cat2Records = adminFetchedRecords.filter(r => r.stage2Category === 'Category 2 (Anxious)' && Array.isArray(r.stage2Answers));
+
+            // Render Category 1 Questions Analytics
+            if(cat1Records.length > 0) {
+                const cat1Wrapper = document.createElement('div');
+                cat1Wrapper.className = 'space-y-4';
+                cat1Wrapper.innerHTML = `<h4 class="font-bold text-indigo-700 text-sm bg-indigo-50 p-3 rounded-xl border border-indigo-100"><i class="fa-solid fa-users mr-1"></i> 第一類 (非焦慮型) 同學之第二階段回答統計 (${cat1Records.length} 人)</h4>`;
+                
+                stage2Category1.forEach((qObj, qIdx) => {
+                    const optionCounts = {};
+                    qObj.options.forEach(opt => optionCounts[opt] = 0);
+                    
+                    cat1Records.forEach(rec => {
+                        const ans = rec.stage2Answers[qIdx];
+                        if(ans && optionCounts[ans] !== undefined) {
+                            optionCounts[ans]++;
+                        }
+                    });
+
+                    const qCard = document.createElement('div');
+                    qCard.className = 'bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3';
+                    
+                    let barsHTML = '';
+                    const totalAns = cat1Records.length;
+                    qObj.options.forEach(opt => {
+                        const count = optionCounts[opt];
+                        const pct = totalAns > 0 ? Math.round((count / totalAns) * 100) : 0;
+                        barsHTML += `
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-medium text-slate-600">
+                                    <span>${opt}</span>
+                                    <span class="font-bold text-slate-800">${count} 人 (${pct}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    qCard.innerHTML = `
+                        <div class="font-bold text-slate-800 text-xs sm:text-sm">Q${qIdx + 1}. ${qObj.text}</div>
+                        <div class="space-y-2 pt-2">${barsHTML}</div>
+                    `;
+                    cat1Wrapper.appendChild(qCard);
+                });
+                container.appendChild(cat1Wrapper);
+            }
+
+            // Render Category 2 Questions Analytics
+            if(cat2Records.length > 0) {
+                const cat2Wrapper = document.createElement('div');
+                cat2Wrapper.className = 'space-y-4 mt-6';
+                cat2Wrapper.innerHTML = `<h4 class="font-bold text-amber-700 text-sm bg-amber-50 p-3 rounded-xl border border-amber-100"><i class="fa-solid fa-heart-pulse mr-1"></i> 第二類 (焦慮型) 同學之第二階段回答統計 (${cat2Records.length} 人)</h4>`;
+                
+                stage2Category2.forEach((qObj, qIdx) => {
+                    const optionCounts = {};
+                    qObj.options.forEach(opt => optionCounts[opt] = 0);
+                    
+                    cat2Records.forEach(rec => {
+                        const ans = rec.stage2Answers[qIdx];
+                        if(ans && optionCounts[ans] !== undefined) {
+                            optionCounts[ans]++;
+                        }
+                    });
+
+                    const qCard = document.createElement('div');
+                    qCard.className = 'bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3';
+                    
+                    let barsHTML = '';
+                    const totalAns = cat2Records.length;
+                    qObj.options.forEach(opt => {
+                        const count = optionCounts[opt];
+                        const pct = totalAns > 0 ? Math.round((count / totalAns) * 100) : 0;
+                        barsHTML += `
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-medium text-slate-600">
+                                    <span>${opt}</span>
+                                    <span class="font-bold text-slate-800">${count} 人 (${pct}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-amber-50 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    qCard.innerHTML = `
+                        <div class="font-bold text-slate-800 text-xs sm:text-sm">Q${qIdx + 1}. ${qObj.text}</div>
+                        <div class="space-y-2 pt-2">${barsHTML}</div>
+                    `;
+                    cat2Wrapper.appendChild(qCard);
+                });
+                container.appendChild(cat2Wrapper);
+            }
+
+            if(cat1Records.length === 0 && cat2Records.length === 0) {
+                const noS2 = document.createElement('div');
+                noS2.className = 'p-6 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm text-xs';
+                noS2.innerText = "目前尚無受測者完成第二階段問卷。";
+                container.appendChild(noS2);
+            }
+        }
+
+        function saveWebhookUrl() {
+            const url = document.getElementById('sheets-webhook-url').value.trim();
+            googleSheetsWebhookUrl = url;
+            localStorage.setItem('attachment_webhook_url', url);
+            showToast("Google 試算表同步網址已儲存！");
+        }
+
+        function copyAppsScriptCode() {
+            const codeText = document.getElementById('apps-script-code').innerText;
             const tempInput = document.createElement('textarea');
-            tempInput.value = textToCopy;
+            tempInput.value = codeText;
             document.body.appendChild(tempInput);
             tempInput.select();
             document.execCommand('copy');
             document.body.removeChild(tempInput);
-
-            showToast("結果已複製到剪貼簿囉！");
+            showToast("Apps Script 代碼已成功複製到剪貼簿！");
         }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-message');
-            if (toast && toastMsg) {
-                toastMsg.innerText = message;
-                toast.classList.remove('opacity-0', 'pointer-events-none');
-                toast.classList.add('opacity-100');
-                setTimeout(() => {
-                    toast.classList.remove('opacity-100');
-                    toast.classList.add('opacity-0', 'pointer-events-none');
-                }, 3000);
-            } else {
-                console.log("Toast Notice:", message);
-            }
-        }
-
-        // Global functions binding
-        window.openAdminDashboard = openAdminDashboard;
-        window.closeAdminDashboard = closeAdminDashboard;
-        window.switchAdminTab = switchAdminTab;
-        window.saveWebhookUrl = saveWebhookUrl;
-        window.copyAppsScriptCode = copyAppsScriptCode;
-        window.renderAdminAnalytics = renderAdminAnalytics;
-        window.syncToGoogleSheets = syncToGoogleSheets;
-        window.handleGoogleLogin = handleGoogleLogin;
-        window.openGoogleModal = openGoogleModal;
-        window.closeGoogleModal = closeGoogleModal;
-        window.confirmGoogleQuickLogin = confirmGoogleQuickLogin;
-        window.handleSignOut = handleSignOut;
-        window.fetchAdminData = fetchAdminData;
-        window.deleteRecord = deleteRecord;
-        window.exportToCSV = exportToCSV;
-        window.copyForGoogleSheets = copyForGoogleSheets;
-        window.startQuiz = startQuiz;
-        window.showQuestion = showQuestion;
-        window.selectOption = selectOption;
-        window.nextQuestion = nextQuestion;
-        window.prevQuestion = prevQuestion;
-        window.calculateResults = calculateResults;
-        window.renderRadarChart = renderRadarChart;
-        window.startStage2 = startStage2;
-        window.showStage2Question = showStage2Question;
-        window.selectStage2Option = selectStage2Option;
-        window.nextStage2Question = nextStage2Question;
-        window.prevStage2Question = prevStage2Question;
-        window.finishStage2 = finishStage2;
-        window.restartQuiz = restartQuiz;
-        window.copyResult = copyResult;
-        window.showToast = showToast;
     </script>
 </body>
 </html>
