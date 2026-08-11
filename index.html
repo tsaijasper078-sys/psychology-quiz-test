@@ -41,7 +41,6 @@
         window.firebaseDb = db;
         window.appId = appId;
     </script>
-
     <style>
         body {
             font-family: 'Zen Maru Gothic', sans-serif;
@@ -70,6 +69,7 @@
 
     <main class="max-w-3xl mx-auto w-full flex-grow flex flex-col justify-center">
 
+        <!-- Intro Card -->
         <div id="intro-card" class="bg-white rounded-3xl p-6 sm:p-10 card-shadow text-center border border-rose-100 block">
             <!-- Top Identity Status & Login Bar -->
             <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
@@ -81,12 +81,12 @@
                         </div>
                         <div>
                             <div class="font-bold text-slate-800 text-sm">請先完成身分驗證</div>
-                            <div class="text-xs text-slate-500">防重複填寫機制：請登入您的帳號</div>
+                            <div class="text-xs text-slate-500">防重複填寫機制：請輸入您的電子信箱</div>
                         </div>
                     </div>
                     <button onclick="handleGoogleLogin()" class="w-full sm:w-auto px-5 py-2.5 bg-white border border-slate-200 hover:border-rose-400 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition text-xs flex items-center justify-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-                        帳號登入驗證
+                        身分驗證登入
                     </button>
                 </div>
 
@@ -117,7 +117,7 @@
                 <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl mt-0.5 shrink-0"></i>
                 <div>
                     <div class="font-bold text-amber-950 mb-0.5">您已完成過本專題問卷</div>
-                    <p class="leading-relaxed text-amber-800">根據您的帳號記錄，每人僅限填寫一次，以確保研究數據公平性。系統已記錄您的回覆！</p>
+                    <p class="leading-relaxed text-amber-800">根據記錄，此信箱每人僅限填寫一次，以確保研究數據公平性。系統已記錄您的回覆！</p>
                 </div>
             </div>
 
@@ -135,10 +135,11 @@
             </div>
 
             <button id="start-btn" onclick="startQuiz()" class="w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer opacity-50 cursor-not-allowed" disabled>
-                請先登入帳號以開始測驗 <i class="fa-solid fa-lock ml-2"></i>
+                請先完成身分驗證以開始測驗 <i class="fa-solid fa-lock ml-2"></i>
             </button>
         </div>
 
+        <!-- Demographic Card -->
         <div id="demographic-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
             <div class="inline-block bg-rose-50 text-rose-500 font-semibold text-xs px-3 py-1 rounded-full mb-3">
                 基本資料填寫
@@ -175,6 +176,7 @@
             </div>
         </div>
 
+        <!-- Quiz Card -->
         <div id="quiz-card" class="hidden bg-white rounded-3xl p-6 sm:p-8 card-shadow border border-rose-100">
             <div class="mb-6">
                 <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
@@ -222,18 +224,19 @@
             </div>
         </div>
 
+        <!-- Result Card -->
         <div id="result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
-            <div class="text-center mb-6">
+            <div class="text-center">
                 <div id="result-icon-bg" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 text-3xl shadow-sm">
                 </div>
 
                 <p class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1">YOUR ATTACHMENT STYLE</p>
                 <h2 id="result-type" class="text-2xl sm:text-3xl font-bold text-slate-800 mb-2"></h2>
-                <p id="result-subtitle" class="text-sm font-medium text-rose-500 mb-0"></p>
+                <p id="result-subtitle" class="text-sm font-medium text-rose-500 mb-6"></p>
             </div>
 
-            <!-- Stage 2 CTA Banner -->
-            <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 rounded-3xl p-6 text-white text-center shadow-xl mb-8 relative overflow-hidden">
+            <!-- Stage 2 CTA Banner - Placed right below the attachment result as requested -->
+            <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 rounded-3xl p-6 text-white text-center shadow-xl mb-6 relative overflow-hidden">
                 <div class="relative z-10">
                     <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block mb-2 backdrop-blur-sm">
                         <i class="fa-solid fa-star text-amber-300 mr-1"></i> 請繼續完成下一階段分流問卷
@@ -292,6 +295,7 @@
             </div>
         </div>
 
+        <!-- Stage 2 Quiz Card -->
         <div id="stage2-quiz-card" class="hidden bg-white rounded-3xl p-6 sm:p-8 card-shadow border border-indigo-100">
             <div class="mb-6">
                 <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
@@ -327,6 +331,7 @@
             </div>
         </div>
 
+        <!-- Stage 2 Result Card -->
         <div id="stage2-result-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-emerald-100 text-center">
             <div class="w-20 h-20 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 text-3xl shadow-sm">
                 <i class="fa-solid fa-circle-check"></i>
@@ -349,6 +354,7 @@
 
     </main>
 
+    <!-- Login Modal -->
     <div id="google-login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-left">
             <div class="flex items-center gap-3 mb-4">
@@ -357,14 +363,14 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-lg">身分驗證登入</h3>
-                    <p class="text-xs text-slate-400">請輸入您的電子郵件帳號進行測試填寫</p>
+                    <p class="text-xs text-slate-400">請輸入電子信箱（需包含 @）或測試密碼進行登入</p>
                 </div>
             </div>
 
             <form onsubmit="confirmGoogleQuickLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">電子郵件帳號 / 測試密碼</label>
-                    <input type="text" id="modal-google-email" required placeholder="請輸入帳號" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">電子信箱 / 測試密碼</label>
+                    <input type="text" id="modal-google-email" required placeholder="例如：yourname@gmail.com 或 12345678" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">您的姓名 / 暱稱 (選填)</label>
@@ -388,8 +394,9 @@
         <span id="toast-message">提示訊息</span>
     </div>
 
-    <footer class="text-center text-xs text-slate-400 my-6">
+    <footer class="text-center text-xs text-slate-400 my-6 space-y-2">
         <p>溫馨提示：本測驗結果僅供自我探索與專題研究參考，並非專業臨床心理診斷。</p>
+        <p><a href="https://docs.google.com/spreadsheets/d/1RfMmCLf1l0FwZvoENSGxwomLxkuu74AtsDBruq6ScwA/edit?gid=0#gid=0" target="_blank" class="text-rose-500 hover:underline font-semibold"><i class="fa-solid fa-file-excel mr-1"></i>查看 Google 試算表後端數據</a></p>
     </footer>
 
     <script>
@@ -404,7 +411,7 @@
         let stage2Answers = [];
         let stage2QuestionsList = [];
         let radarChartInstance = null;
-        let googleSheetsWebhookUrl = localStorage.getItem('attachment_webhook_url') || 'https://script.google.com/macros/s/AKfycbxt02jVOkkRq0mXZKWig-FtsG4NPpBXDwJoISmN7XRjhtG_XqWhFPmsa4NiliwS6vMWUQ/exec';
+        let googleSheetsWebhookUrl = 'https://script.google.com/macros/s/AKfycbxxnXrCnbUtH90_ILoPa5xJAPWwJ2SWS54ZeylNR0ywqP9mUO4ou9Ix33kifrLK6Ul_rg/exec';
 
         const questions = [
             { text: "在親密關係中，我能夠坦然地表達自己的脆弱與真實需求。", dim: "secure", name: "安全信任" },
@@ -493,11 +500,6 @@
             }, 3000);
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const sWebhook = localStorage.getItem('attachment_webhook_url');
-            if(sWebhook) googleSheetsWebhookUrl = sWebhook;
-        });
-
         function handleGoogleLogin() {
             const modal = document.getElementById('google-login-modal');
             modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -517,7 +519,28 @@
             const isTestPasscode = (inputVal === '12345678');
 
             if(!hasAtSymbol && !isTestPasscode) {
-                showToast("驗證失敗：請輸入正確的Google帳號");
+                showToast("驗證失敗：請輸入包含 @ 的電子信箱或測試密碼 12345678！");
+                return;
+            }
+
+            let submittedEmails = JSON.parse(localStorage.getItem('attachment_submitted_emails') || '[]');
+            let alreadySubmitted = submittedEmails.includes(inputVal.toLowerCase());
+
+            if(alreadySubmitted && !isTestPasscode) {
+                closeGoogleModal();
+                mockUserProfile.email = inputVal;
+                mockUserProfile.name = name;
+                document.getElementById('already-completed-box').classList.remove('hidden');
+                document.getElementById('logged-out-view').classList.add('hidden');
+                document.getElementById('logged-in-view').classList.remove('hidden');
+                document.getElementById('logged-in-view').classList.add('flex');
+                document.getElementById('user-avatar-placeholder').innerText = name.charAt(0).toUpperCase();
+                document.getElementById('user-name').innerText = name || inputVal;
+                
+                const startBtn = document.getElementById('start-btn');
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                startBtn.disabled = true;
+                showToast("偵測到此信箱已完成過問卷，每人僅限填寫一次！");
                 return;
             }
 
@@ -526,34 +549,10 @@
             closeGoogleModal();
             updateAuthUI();
 
-            if (!isTestPasscode) {
-                checkIfAlreadySubmitted(inputVal);
-            } else {
-                document.getElementById('already-completed-box').classList.add('hidden');
+            if(isTestPasscode) {
                 showToast("已啟用 12345678 測試模式：可無限次填寫送出！");
-            }
-        }
-
-        async function checkIfAlreadySubmitted(email) {
-            let records = [];
-            try {
-                if(googleSheetsWebhookUrl) {
-                    const res = await fetch(googleSheetsWebhookUrl + '?action=getRecords');
-                    const data = await res.json();
-                    if(Array.isArray(data)) records = data;
-                }
-            } catch(e) {
-                records = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
-            }
-
-            const found = records.some(r => r.userEmail && r.userEmail.toLowerCase() === email.toLowerCase());
-            if(found) {
-                document.getElementById('already-completed-box').classList.remove('hidden');
-                document.getElementById('start-btn').classList.add('opacity-50', 'cursor-not-allowed');
-                document.getElementById('start-btn').disabled = true;
-                showToast("偵測到此帳號已完成過問卷，每人僅限填寫一次！");
             } else {
-                document.getElementById('already-completed-box').classList.add('hidden');
+                showToast("身分驗證成功，請開始測驗！");
             }
         }
 
@@ -565,6 +564,8 @@
             const initialChar = mockUserProfile.name ? mockUserProfile.name.charAt(0).toUpperCase() : 'U';
             document.getElementById('user-avatar-placeholder').innerText = initialChar;
             document.getElementById('user-name').innerText = mockUserProfile.name || mockUserProfile.email;
+
+            document.getElementById('already-completed-box').classList.add('hidden');
 
             const startBtn = document.getElementById('start-btn');
             startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -583,7 +584,7 @@
             const startBtn = document.getElementById('start-btn');
             startBtn.classList.add('opacity-50', 'cursor-not-allowed');
             startBtn.disabled = true;
-            startBtn.innerHTML = '請先登入帳號以開始測驗 <i class="fa-solid fa-lock ml-2"></i>';
+            startBtn.innerHTML = '請先完成身分驗證以開始測驗 <i class="fa-solid fa-lock ml-2"></i>';
         }
 
         function startQuiz() {
@@ -929,6 +930,14 @@
                 answers: answers,
                 stage2Answers: stage2Answers
             };
+
+            if(mockUserProfile.email && mockUserProfile.email !== '12345678') {
+                let submittedEmails = JSON.parse(localStorage.getItem('attachment_submitted_emails') || '[]');
+                if(!submittedEmails.includes(mockUserProfile.email.toLowerCase())) {
+                    submittedEmails.push(mockUserProfile.email.toLowerCase());
+                    localStorage.setItem('attachment_submitted_emails', JSON.stringify(submittedEmails));
+                }
+            }
 
             let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
             localRecords.push(submitData);
