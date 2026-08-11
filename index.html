@@ -1122,6 +1122,7 @@
             showToast("正在將測驗結果儲存至資料庫...");
             
             const submitData = {
+                id: 'sub_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
                 userEmail: mockUserProfile.email,
                 userName: mockUserProfile.name,
                 gender: demographicData.gender,
@@ -1230,23 +1231,14 @@
             tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>正在載入受測紀錄...</div></td></tr>`;
 
             try {
-                let records = [];
-                // Load from LocalStorage first
-                let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
-                records = [...localRecords];
-
-                // If webhook is provided, try fetching remote as well
-                if(googleSheetsWebhookUrl) {
-                    try {
-                        const response = await fetch(googleSheetsWebhookUrl);
-                        const remoteData = await response.json();
-                        if(Array.isArray(remoteData) && remoteData.length > 0) {
-                            records = remoteData;
-                        }
-                    } catch(err) {
-                        console.log("Remote fetch fallback to local", err);
-                    }
-                }
+                let records = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
+                
+                // Ensure all records have unique IDs
+                records = records.map((r, idx) => ({
+                    id: r.id || ('legacy_' + idx + '_' + Date.now()),
+                    ...r
+                }));
+                localStorage.setItem('attachment_local_submissions', JSON.stringify(records));
 
                 adminFetchedRecords = records;
                 
@@ -1281,19 +1273,13 @@
             }
         }
 
-        function deleteRecord(index) {
+        function deleteRecord(recordId) {
             if(!confirm("確定要刪除這筆受測資料嗎？")) return;
             
-            // Delete from local records
             let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
-            // Assuming index corresponds to the reversed or direct array
-            let targetIndex = adminFetchedRecords.length - 1 - index;
-            if(localRecords[targetIndex]) {
-                localRecords.splice(targetIndex, 1);
-                localStorage.setItem('attachment_local_submissions', JSON.stringify(localRecords));
-            }
+            localRecords = localRecords.filter(r => r.id !== recordId);
+            localStorage.setItem('attachment_local_submissions', JSON.stringify(localRecords));
             
-            adminFetchedRecords.splice(targetIndex, 1);
             showToast("資料已成功刪除");
             fetchAdminData();
         }
@@ -1307,7 +1293,7 @@
                 return;
             }
 
-            adminFetchedRecords.slice().reverse().forEach((record, revIdx) => {
+            adminFetchedRecords.slice().reverse().forEach((record) => {
                 const tr = document.createElement('tr');
                 const catBadge = record.stage2Category && record.stage2Category.includes('Anxious') ? 
                     '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold text-xs">二類(焦慮)</span>' : 
@@ -1323,7 +1309,7 @@
                     <td class="p-3.5 font-semibold text-rose-500">${record.dominantType}</td>
                     <td class="p-3.5">${catBadge}</td>
                     <td class="p-3.5 text-center">
-                        <button onclick="deleteRecord(${revIdx})" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition cursor-pointer">
+                        <button onclick="deleteRecord('${record.id}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition cursor-pointer">
                             <i class="fa-solid fa-trash mr-1"></i> 刪除
                         </button>
                     </td>
