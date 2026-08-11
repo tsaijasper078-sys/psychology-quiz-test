@@ -80,13 +80,13 @@
                             <i class="fa-solid fa-user-shield"></i>
                         </div>
                         <div>
-                            <div class="font-bold text-slate-800 text-sm">請先完成 Gmail 身分驗證</div>
-                            <div class="text-xs text-slate-500">防重複填寫機制：請輸入您的完整 Gmail 帳號</div>
+                            <div class="font-bold text-slate-800 text-sm">請先完成身分驗證</div>
+                            <div class="text-xs text-slate-500">防重複填寫機制：請登入您的帳號</div>
                         </div>
                     </div>
                     <button onclick="handleGoogleLogin()" class="w-full sm:w-auto px-5 py-2.5 bg-white border border-slate-200 hover:border-rose-400 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition text-xs flex items-center justify-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-                        Google / Gmail 登入驗證
+                        帳號登入驗證
                     </button>
                 </div>
 
@@ -98,7 +98,7 @@
                             <div class="flex items-center gap-2">
                                 <span id="user-name" class="font-bold text-slate-800 text-sm">使用者</span>
                                 <span id="user-status-tag" class="text-[11px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md font-semibold border border-emerald-100 flex items-center gap-1">
-                                    <i class="fa-solid fa-circle-check"></i> 已驗證 Gmail
+                                    <i class="fa-solid fa-circle-check"></i> 已驗證身分
                                 </span>
                             </div>
                             <div class="text-xs text-slate-400">已啟用防重複提交保護</div>
@@ -117,7 +117,7 @@
                 <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl mt-0.5 shrink-0"></i>
                 <div>
                     <div class="font-bold text-amber-950 mb-0.5">您已完成過本專題問卷</div>
-                    <p class="leading-relaxed text-amber-800">根據您的 Gmail 記錄，每人僅限填寫一次，以確保研究數據公平性。系統已記錄您的回覆！</p>
+                    <p class="leading-relaxed text-amber-800">根據您的帳號記錄，每人僅限填寫一次，以確保研究數據公平性。系統已記錄您的回覆！</p>
                 </div>
             </div>
 
@@ -135,7 +135,7 @@
             </div>
 
             <button id="start-btn" onclick="startQuiz()" class="w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer opacity-50 cursor-not-allowed" disabled>
-                請先登入 Gmail 以開始測驗 <i class="fa-solid fa-lock ml-2"></i>
+                請先登入帳號以開始測驗 <i class="fa-solid fa-lock ml-2"></i>
             </button>
         </div>
 
@@ -356,15 +356,15 @@
                     <svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-lg">Gmail 身分驗證登入</h3>
-                    <p class="text-xs text-slate-400">請輸入完整的 Gmail 帳號或輸入 12345678 進行無限次測試填寫</p>
+                    <h3 class="font-bold text-slate-800 text-lg">身分驗證登入</h3>
+                    <p class="text-xs text-slate-400">請輸入您的電子郵件帳號進行測試填寫</p>
                 </div>
             </div>
 
             <form onsubmit="confirmGoogleQuickLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">完整 Gmail 帳號 / 測試密碼</label>
-                    <input type="text" id="modal-google-email" required placeholder="例如：yourname@gmail.com 或 12345678" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">電子郵件帳號 / 測試密碼</label>
+                    <input type="text" id="modal-google-email" required placeholder="請輸入帳號" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">您的姓名 / 暱稱 (選填)</label>
@@ -513,11 +513,11 @@
             const inputVal = document.getElementById('modal-google-email').value.trim();
             const name = document.getElementById('modal-google-name').value.trim() || '受測同學';
             
-            const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+            const hasAtSymbol = inputVal.includes('@');
             const isTestPasscode = (inputVal === '12345678');
 
-            if(!gmailRegex.test(inputVal) && !isTestPasscode) {
-                showToast("驗證失敗：請輸入完整的 Gmail 帳號（例如 yourname@gmail.com）或測試密碼 12345678！");
+            if(!hasAtSymbol && !isTestPasscode) {
+                showToast("驗證失敗：請輸入正確的Google帳號");
                 return;
             }
 
@@ -551,7 +551,7 @@
                 document.getElementById('already-completed-box').classList.remove('hidden');
                 document.getElementById('start-btn').classList.add('opacity-50', 'cursor-not-allowed');
                 document.getElementById('start-btn').disabled = true;
-                showToast("偵測到此 Gmail 已完成過問卷，每人僅限填寫一次！");
+                showToast("偵測到此帳號已完成過問卷，每人僅限填寫一次！");
             } else {
                 document.getElementById('already-completed-box').classList.add('hidden');
             }
@@ -583,7 +583,7 @@
             const startBtn = document.getElementById('start-btn');
             startBtn.classList.add('opacity-50', 'cursor-not-allowed');
             startBtn.disabled = true;
-            startBtn.innerHTML = '請先登入 Gmail 以開始測驗 <i class="fa-solid fa-lock ml-2"></i>';
+            startBtn.innerHTML = '請先登入帳號以開始測驗 <i class="fa-solid fa-lock ml-2"></i>';
         }
 
         function startQuiz() {
