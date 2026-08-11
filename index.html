@@ -10,13 +10,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chart.js CDN for Radar Chart and Analytics -->
+    <!-- Chart.js CDN for Radar Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'attachment-survey-app';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -29,7 +29,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const googleProvider = new GoogleAuthProvider();
 
         const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         if (initialToken) {
@@ -40,7 +39,6 @@
 
         window.firebaseAuth = auth;
         window.firebaseDb = db;
-        window.googleProvider = googleProvider;
         window.appId = appId;
     </script>
 
@@ -82,8 +80,8 @@
                             <i class="fa-solid fa-user-shield"></i>
                         </div>
                         <div>
-                            <div class="font-bold text-slate-800 text-sm">請先完成身分驗證</div>
-                            <div class="text-xs text-slate-500">防重複填寫機制：管理員請輸入 12345678，受測者須輸入完整 Gmail 帳號</div>
+                            <div class="font-bold text-slate-800 text-sm">請先完成 Gmail 身分驗證</div>
+                            <div class="text-xs text-slate-500">防重複填寫機制：請輸入您的完整 Gmail 帳號</div>
                         </div>
                     </div>
                     <button onclick="handleGoogleLogin()" class="w-full sm:w-auto px-5 py-2.5 bg-white border border-slate-200 hover:border-rose-400 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition text-xs flex items-center justify-center gap-2 cursor-pointer">
@@ -107,9 +105,6 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button id="admin-dashboard-btn" onclick="openAdminDashboard()" class="hidden text-xs text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-chart-line"></i> 後台看板 (從試算表抓取數據)
-                        </button>
                         <button onclick="handleSignOut()" class="text-xs text-slate-500 hover:text-rose-500 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:border-rose-200 bg-white transition cursor-pointer">
                             <i class="fa-solid fa-right-from-bracket mr-1"></i> 切換帳號
                         </button>
@@ -135,13 +130,49 @@
                 <p class="font-bold text-slate-800 text-sm">各位同學好，</p>
                 <p>日常中我們常會遇到困境，然而有些人選擇迴避或把它視為一切焦慮來源，這些因素甚至影響到了同儕關係。如今面臨這樣的遭遇的青少年，愈來愈多。不知道正在填表單的你們是否也遇到過相同的情況呢?</p>
                 <p>我們是明道中學應用英語科的專題製作團隊，我們希望透過這份問卷，能夠探討類似的案例。並分析同儕關係的心理密碼到底怎麼解決。</p>
-                <p>本問卷包含兩個階段，作答結果將直接寫入 Google 試算表並進行分析，依完全匿名的形式呈現，絕不公開隱私訊息，請放心填寫，填答時間約 3-5 分鐘。</p>
+                <p>本問卷包含兩個階段（第二階段依您的依附特質進行分流：一類非焦慮型、二類焦慮型），作答結果將直接寫入 Google 試算表，依完全匿名的形式呈現，絕不公開隱私訊息，請放心填寫，填答時間約 3-5 分鐘。</p>
                 <p class="font-bold text-rose-500 pt-1">由衷感謝幫忙填寫問卷的同學，每份回覆都對我們至關重要!</p>
             </div>
 
             <button id="start-btn" onclick="startQuiz()" class="w-full sm:w-auto px-10 py-3.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-lg transition duration-300 text-base cursor-pointer opacity-50 cursor-not-allowed" disabled>
                 請先登入 Gmail 以開始測驗 <i class="fa-solid fa-lock ml-2"></i>
             </button>
+        </div>
+
+        <div id="demographic-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
+            <div class="inline-block bg-rose-50 text-rose-500 font-semibold text-xs px-3 py-1 rounded-full mb-3">
+                基本資料填寫
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">請先回答以下 2 項基本資料</h2>
+            
+            <div class="space-y-6 text-left mb-8">
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <label class="block text-sm font-bold text-slate-800 mb-3">1. 您的性別：</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <button type="button" onclick="selectDemoGender('男')" id="demo-gender-男" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">男</button>
+                        <button type="button" onclick="selectDemoGender('女')" id="demo-gender-女" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">女</button>
+                        <button type="button" onclick="selectDemoGender('其他')" id="demo-gender-other" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">其他</button>
+                        <button type="button" onclick="selectDemoGender('不願透露')" id="demo-gender-none" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">不願透露</button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <label class="block text-sm font-bold text-slate-800 mb-3">2. 您的學制：</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="selectDemoLevel('國中')" id="demo-level-國中" class="demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">國中</button>
+                        <button type="button" onclick="selectDemoLevel('高中')" id="demo-level-高中" class="demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">高中</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                <button onclick="backToIntro()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center cursor-pointer">
+                    <i class="fa-solid fa-chevron-left mr-1.5"></i> 返回說明
+                </button>
+                <button id="demographic-next-btn" onclick="proceedToQuiz()" class="px-8 py-3 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-md transition text-sm opacity-50 cursor-not-allowed" disabled>
+                    下一步：開始心理測驗 <i class="fa-solid fa-chevron-right ml-1.5"></i>
+                </button>
+            </div>
         </div>
 
         <div id="quiz-card" class="hidden bg-white rounded-3xl p-6 sm:p-8 card-shadow border border-rose-100">
@@ -250,12 +281,12 @@
             <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 rounded-3xl p-6 text-white text-center shadow-xl mb-6 relative overflow-hidden">
                 <div class="relative z-10">
                     <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block mb-2 backdrop-blur-sm">
-                        <i class="fa-solid fa-star text-amber-300 mr-1"></i> 請繼續完成下一階段
+                        <i class="fa-solid fa-star text-amber-300 mr-1"></i> 請繼續完成下一階段分流問卷
                     </span>
                     <h3 class="text-xl sm:text-2xl font-black mb-2 tracking-wide">第二階段：同儕社交關係深度評估</h3>
-                    <p class="text-xs sm:text-sm text-indigo-100 mb-5 max-w-md mx-auto">為了深入了解同儕互動與依附特質的關聯，請點擊下方按鈕繼續完成第 2 階段問卷。</p>
+                    <p class="text-xs sm:text-sm text-indigo-100 mb-5 max-w-md mx-auto">系統已依您的依附特質進行分流（一類非焦慮型 / 二類焦慮型），請點擊下方按鈕繼續。</p>
                     <button onclick="startStage2()" id="stage2-cta-btn" class="w-full sm:w-auto px-10 py-4 bg-amber-400 hover:bg-amber-300 text-slate-900 font-black rounded-full shadow-2xl hover:scale-105 transition duration-300 text-base sm:text-lg flex items-center justify-center gap-3 mx-auto cursor-pointer border-2 border-amber-200">
-                        <span>開啟第二階段深度評估</span> <i class="fa-solid fa-circle-arrow-right text-xl animate-pulse"></i>
+                        <span>進入第二階段分流問卷</span> <i class="fa-solid fa-circle-arrow-right text-xl animate-pulse"></i>
                     </button>
                 </div>
             </div>
@@ -265,7 +296,7 @@
             <div class="mb-6">
                 <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
                     <span id="s2-type-badge" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold">
-                        第二階段：同儕互動評估
+                        第二階段：分流評估
                     </span>
                     <div>
                         <span id="s2-question-number" class="text-slate-700 font-bold">題目 1</span>
@@ -303,16 +334,13 @@
             
             <p class="text-xs font-bold tracking-widest text-emerald-600 uppercase mb-1">SURVEY COMPLETED</p>
             <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-3">
-                問卷數據已成功送出並直接寫入 Google 試算表！
+                問卷數據已成功送出並記錄至 Google 試算表！
             </h2>
             <p class="text-sm font-medium text-slate-500 mb-6 max-w-md mx-auto">
-                感謝您協助本專題研究 ✨ 您的作答資料已同步記錄至遠端 Google 試算表中，後台看板將直接從該試算表抓取數據進行 Google 表單風格分析。
+                感謝您協助本專題研究 ✨ 您的作答資料已同步記錄至遠端 Google 試算表中。
             </p>
 
-            <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onclick="openGoogleSheetFromCompletion()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-full shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-file-excel"></i> 開啟 Google 試算表
-                </button>
+            <div class="flex justify-center">
                 <button onclick="location.reload()" class="px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-full shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-house"></i> 返回首頁
                 </button>
@@ -328,14 +356,14 @@
                     <svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-lg">身分與 Gmail 驗證登入</h3>
-                    <p class="text-xs text-slate-400">管理員請輸入 12345678｜一般受測者請輸入完整 Gmail 帳號</p>
+                    <h3 class="font-bold text-slate-800 text-lg">Gmail 身分驗證登入</h3>
+                    <p class="text-xs text-slate-400">請輸入完整的 Gmail 帳號或輸入 12345678 進行無限次測試填寫</p>
                 </div>
             </div>
 
             <form onsubmit="confirmGoogleQuickLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">管理員密碼 或 完整 Gmail 帳號</label>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">完整 Gmail 帳號 / 測試密碼</label>
                     <input type="text" id="modal-google-email" required placeholder="例如：yourname@gmail.com 或 12345678" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-rose-400 transition">
                 </div>
                 <div>
@@ -344,205 +372,14 @@
                 </div>
 
                 <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeGoogleModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-full text-xs transition cursor-pointer">
+                    <button type="button" onclick="closeGoogleModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition cursor-pointer">
                         取消
                     </button>
-                    <button type="submit" class="w-1/2 py-2.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full text-xs shadow-md transition cursor-pointer">
+                    <button type="submit" class="w-1/2 py-2.5 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-xl text-xs shadow-md transition cursor-pointer">
                         驗證並登入
                     </button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <div id="demographic-card" class="hidden bg-white rounded-3xl p-6 sm:p-10 card-shadow border border-rose-100">
-        <div class="inline-block bg-rose-50 text-rose-500 font-semibold text-xs px-3 py-1 rounded-full mb-3">
-            基本基本資料填寫
-        </div>
-        <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">請先回答以下 2 項基本資料</h2>
-        
-        <div class="space-y-6 text-left mb-8">
-            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                <label class="block text-sm font-bold text-slate-800 mb-3">1. 您的性別：</label>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <button type="button" onclick="selectDemoGender('男')" id="demo-gender-男" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">男</button>
-                    <button type="button" onclick="selectDemoGender('女')" id="demo-gender-女" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">女</button>
-                    <button type="button" onclick="selectDemoGender('其他')" id="demo-gender-其他" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">其他</button>
-                    <button type="button" onclick="selectDemoGender('不願透露')" id="demo-gender-不願透露" class="demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">不願透露</button>
-                </div>
-            </div>
-
-            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                <label class="block text-sm font-bold text-slate-800 mb-3">2. 您的學制：</label>
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" onclick="selectDemoLevel('國中')" id="demo-level-國中" class="demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">國中</button>
-                    <button type="button" onclick="selectDemoLevel('高中')" id="demo-level-高中" class="demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer">高中</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-            <button onclick="backToIntro()" class="px-5 py-2.5 text-slate-500 hover:text-slate-800 transition font-medium text-sm flex items-center cursor-pointer">
-                <i class="fa-solid fa-chevron-left mr-1.5"></i> 返回說明
-            </button>
-            <button id="demographic-next-btn" onclick="proceedToQuiz()" class="px-8 py-3 bg-rose-400 hover:bg-rose-500 text-white font-bold rounded-full shadow-md transition text-sm opacity-50 cursor-not-allowed" disabled>
-                下一步：開始心理測驗 <i class="fa-solid fa-chevron-right ml-1.5"></i>
-            </button>
-        </div>
-    </div>
-
-    <div id="admin-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-0 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-slate-50 w-screen h-screen flex flex-col overflow-hidden text-left shadow-2xl">
-            
-            <!-- Modal Header -->
-            <div class="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between shrink-0 shadow-md">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center font-bold text-lg shadow-inner">
-                        <i class="fa-solid fa-chart-line text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base sm:text-lg">專題研究後台分析看板 (Google 試算表即時抓取與 Google 表單風格分析)</h3>
-                        <p class="text-xs text-slate-400">明道中學應用英語科專題研究團隊專用管理介面</p>
-                    </div>
-                </div>
-                <button onclick="closeAdminDashboard()" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition cursor-pointer">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-
-            <!-- Top Stats Overview Bar -->
-            <div class="grid grid-cols-3 gap-3 p-4 bg-white border-b border-slate-200 text-center shrink-0 shadow-xs">
-                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 shadow-xs">
-                    <div class="text-xs text-slate-400 font-bold mb-0.5">總有效問卷數</div>
-                    <div id="admin-stat-total" class="text-lg sm:text-2xl font-black text-slate-800">0 份</div>
-                </div>
-                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 shadow-xs">
-                    <div class="text-xs text-amber-600 font-bold mb-0.5">焦慮傾向人數</div>
-                    <div id="admin-stat-anxious" class="text-lg sm:text-2xl font-black text-amber-600">0 人</div>
-                </div>
-                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 shadow-xs">
-                    <div class="text-xs text-indigo-600 font-bold mb-0.5">非焦慮傾向人數</div>
-                    <div id="admin-stat-nonanxious" class="text-lg sm:text-2xl font-black text-indigo-600">0 人</div>
-                </div>
-            </div>
-
-            <!-- Navigation Tabs & Actions Bar -->
-            <div class="px-4 pt-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
-                <div class="flex items-center gap-2 border-b-2 border-transparent">
-                    <button id="tab-btn-analytics" onclick="switchAdminTab('analytics')" class="px-4 py-3 font-bold text-xs sm:text-sm border-b-2 border-indigo-600 text-indigo-600 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-chart-pie"></i> 統計分析 (Google 表單風格)
-                    </button>
-                    <button id="tab-btn-table" onclick="switchAdminTab('table')" class="px-4 py-3 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-list-check"></i> 詳細受測紀錄 (<span id="admin-record-count">0</span>)
-                    </button>
-                    <button id="tab-btn-sync" onclick="switchAdminTab('sync')" class="px-4 py-3 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-file-excel text-emerald-600"></i> 試算表串接與抓取設定
-                    </button>
-                </div>
-                <div class="flex items-center gap-2 pb-2">
-                    <button onclick="fetchDataFromSpreadsheet()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-arrows-rotate"></i> 從試算表重新抓取數據
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tab Content Container -->
-            <div class="p-4 sm:p-8 overflow-y-auto flex-grow bg-slate-100">
-                <!-- Tab 1: Google Forms Style Analytics Dashboard -->
-                <div id="admin-tab-content-analytics" class="max-w-5xl mx-auto space-y-6 pb-12">
-                    <div id="analytics-container" class="space-y-6">
-                        <div class="p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">
-                            <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-indigo-500"></i>
-                            <div class="text-sm font-bold">正在從 Google 試算表抓取數據並計算分析...</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab 2: Detailed Records Table -->
-                <div id="admin-tab-content-table" class="max-w-6xl mx-auto hidden pb-12">
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                            <div>
-                                <h4 class="font-bold text-slate-800 text-base">試算表同步之受測詳細紀錄</h4>
-                                <p class="text-xs text-slate-500">此資料來自 Google 試算表即時讀取，您可以檢視各筆作答明細。</p>
-                            </div>
-                            <span class="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-full border border-indigo-100">
-                                共 <span id="table-record-count">0</span> 筆資料
-                            </span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs sm:text-sm text-slate-700">
-                                <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200 text-[11px]">
-                                    <tr>
-                                        <th class="p-3.5">提交時間</th>
-                                        <th class="p-3.5">受測者姓名</th>
-                                        <th class="p-3.5">Gmail 帳號</th>
-                                        <th class="p-3.5">性別 / 學制</th>
-                                        <th class="p-3.5">第一階段依附類型</th>
-                                        <th class="p-3.5">第二階段分類</th>
-                                        <th class="p-3.5 text-center">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-table-body" class="divide-y divide-slate-100">
-                                    <tr>
-                                        <td colspan="7" class="p-10 text-center text-slate-400">
-                                            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
-                                            <div>試算表資料讀取中...</div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab 3: Google Sheets Webhook Configuration -->
-                <div id="admin-tab-content-sync" class="max-w-4xl mx-auto hidden space-y-6 pb-12">
-                    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xl">
-                                <i class="fa-solid fa-link"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-800 text-lg">Google 試算表與 Apps Script 串接設定</h4>
-                                <p class="text-xs text-slate-500">設定後台如何從您的 Google 試算表抓取數據並寫入測驗結果。</p>
-                            </div>
-                        </div>
-
-                        <div class="space-y-4 text-xs sm:text-sm text-slate-600">
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">1. Google 試算表編輯網址 (Google Sheet URL)</label>
-                                <input type="text" id="sheets-edit-url" placeholder="https://docs.google.com/spreadsheets/d/1BxiM.../edit" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
-                            </div>
-
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">2. Google Apps Script 網頁應用程式網址 (Web App URL - 用於資料寫入與抓取)</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="flex-grow px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
-                                    <button onclick="saveWebhookUrl()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition cursor-pointer shrink-0">
-                                        儲存設定
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div id="custom-confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4">
-            <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-xl">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <h4 class="font-bold text-slate-800 text-base">確認刪除資料</h4>
-            <p id="confirm-msg" class="text-xs text-slate-500">確定要從試算表紀錄中移除這筆受測資料嗎？</p>
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeConfirmModal(false)" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition cursor-pointer">取消</button>
-                <button id="confirm-yes-btn" class="w-1/2 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md transition cursor-pointer">確定刪除</button>
-            </div>
         </div>
     </div>
 
@@ -556,9 +393,7 @@
     </footer>
 
     <script>
-        let currentUser = null;
         let mockUserProfile = { name: '', email: '' };
-        let isAdmin = false;
         let demographicData = { gender: '', level: '' };
         let currentQuestion = 0;
         let answers = new Array(16).fill(null);
@@ -569,11 +404,7 @@
         let stage2Answers = [];
         let stage2QuestionsList = [];
         let radarChartInstance = null;
-        let adminFetchedRecords = [];
-        let activeAdminTab = 'analytics';
-        let googleSheetsWebhookUrl = localStorage.getItem('attachment_webhook_url') || '';
-        let googleSheetsEditUrl = localStorage.getItem('attachment_sheet_url') || '';
-        let pendingDeleteId = null;
+        let googleSheetsWebhookUrl = localStorage.getItem('attachment_webhook_url') || 'https://script.google.com/macros/s/AKfycbxt02jVOkkRq0mXZKWig-FtsG4NPpBXDwJoISmN7XRjhtG_XqWhFPmsa4NiliwS6vMWUQ/exec';
 
         const questions = [
             { text: "在親密關係中，我能夠坦然地表達自己的脆弱與真實需求。", dim: "secure", name: "安全信任" },
@@ -611,7 +442,7 @@
         const stage2Category2 = [
             { text: "1. 在群組傳訊息後如果很久沒人理，我會很慌張，甚至想把訊息收回。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
             { text: "2. 看到朋友發合照卻沒標記或找我，我會覺得自己被排擠了。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
-            { text: "3. 聽到老師宣布「自由分組」時，我會很不安，很怕自己最後沒人要。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
+            { text: "3. 看到老師宣布「自由分組」時，我會很不安，很怕自己最後沒人要。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
             { text: "4. 只要老師或組員稍微檢討一下我的部分，我當下就會覺得自己被否定、非常難過。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
             { text: "5. 我常為了不被組員討厭，主動扛下很多不屬於我的工作。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
             { text: "6. 看到好朋友跟其他人玩得很開心，我內心會有點吃醋或被忽視的感覺。", options: ["非常符合", "符合", "普通", "不符合", "非常不符合"] },
@@ -664,9 +495,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const sWebhook = localStorage.getItem('attachment_webhook_url');
-            const sEdit = localStorage.getItem('attachment_sheet_url');
             if(sWebhook) googleSheetsWebhookUrl = sWebhook;
-            if(sEdit) googleSheetsEditUrl = sEdit;
         });
 
         function handleGoogleLogin() {
@@ -679,39 +508,30 @@
             modal.classList.add('opacity-0', 'pointer-events-none');
         }
 
-        // Authentication Rule: Only 12345678 allowed as admin alone. All others MUST be a valid gmail address.
         function confirmGoogleQuickLogin(e) {
             e.preventDefault();
             const inputVal = document.getElementById('modal-google-email').value.trim();
             const name = document.getElementById('modal-google-name').value.trim() || '受測同學';
             
-            if(inputVal === '12345678') {
-                isAdmin = true;
-                closeGoogleModal();
-                mockUserProfile.email = 'admin@system.com';
-                mockUserProfile.name = '系統管理員';
-                document.getElementById('admin-dashboard-btn').classList.remove('hidden');
-                updateAuthUI();
-                openAdminDashboard();
-                showToast("管理員身分驗證成功 (已連結 Google 試算表後台)");
-                return;
-            }
-
-            // Check if valid gmail address
             const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
-            if(!gmailRegex.test(inputVal)) {
-                showToast("驗證失敗：除管理員代碼 12345678 外，其餘帳號必須為完整的 Gmail 帳號（@gmail.com）！");
+            const isTestPasscode = (inputVal === '12345678');
+
+            if(!gmailRegex.test(inputVal) && !isTestPasscode) {
+                showToast("驗證失敗：請輸入完整的 Gmail 帳號（例如 yourname@gmail.com）或測試密碼 12345678！");
                 return;
             }
 
-            isAdmin = false;
             mockUserProfile.email = inputVal;
             mockUserProfile.name = name;
             closeGoogleModal();
             updateAuthUI();
 
-            // Check if this Gmail has already submitted
-            checkIfAlreadySubmitted(inputVal);
+            if (!isTestPasscode) {
+                checkIfAlreadySubmitted(inputVal);
+            } else {
+                document.getElementById('already-completed-box').classList.add('hidden');
+                showToast("已啟用 12345678 測試模式：可無限次填寫送出！");
+            }
         }
 
         async function checkIfAlreadySubmitted(email) {
@@ -749,11 +569,10 @@
             const startBtn = document.getElementById('start-btn');
             startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             startBtn.disabled = false;
-            startBtn.innerHTML = isAdmin ? '開始測驗 (管理員無限次) <i class="fa-solid fa-arrow-right ml-2"></i>' : '開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>';
+            startBtn.innerHTML = '開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>';
         }
 
         function handleSignOut() {
-            isAdmin = false;
             mockUserProfile = { name: '', email: '' };
             demographicData = { gender: '', level: '' };
             document.getElementById('logged-in-view').classList.add('hidden');
@@ -765,7 +584,6 @@
             startBtn.classList.add('opacity-50', 'cursor-not-allowed');
             startBtn.disabled = true;
             startBtn.innerHTML = '請先登入 Gmail 以開始測驗 <i class="fa-solid fa-lock ml-2"></i>';
-            document.getElementById('admin-dashboard-btn').classList.add('hidden');
         }
 
         function startQuiz() {
@@ -785,11 +603,14 @@
         function selectDemoGender(gender) {
             demographicData.gender = gender;
             ['男', '女', '其他', '不願透露'].forEach(g => {
-                const btn = document.getElementById(`demo-gender-${g}`);
-                if(g === gender) {
-                    btn.className = "demo-gender-btn py-3 px-4 rounded-xl border-2 border-rose-400 bg-rose-50 text-rose-700 font-bold text-sm transition cursor-pointer shadow-sm";
-                } else {
-                    btn.className = "demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer";
+                let btnId = g === '其他' ? 'demo-gender-other' : (g === '不願透露' ? 'demo-gender-none' : `demo-gender-${g}`);
+                const btn = document.getElementById(btnId);
+                if(btn) {
+                    if(g === gender) {
+                        btn.className = "demo-gender-btn py-3 px-4 rounded-xl border-2 border-rose-400 bg-rose-50 text-rose-700 font-bold text-sm transition cursor-pointer shadow-sm";
+                    } else {
+                        btn.className = "demo-gender-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer";
+                    }
                 }
             });
             checkDemographicComplete();
@@ -799,10 +620,12 @@
             demographicData.level = level;
             ['國中', '高中'].forEach(l => {
                 const btn = document.getElementById(`demo-level-${l}`);
-                if(l === level) {
-                    btn.className = "demo-level-btn py-3 px-4 rounded-xl border-2 border-rose-400 bg-rose-50 text-rose-700 font-bold text-sm transition cursor-pointer shadow-sm";
-                } else {
-                    btn.className = "demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer";
+                if(btn) {
+                    if(l === level) {
+                        btn.className = "demo-level-btn py-3 px-4 rounded-xl border-2 border-rose-400 bg-rose-50 text-rose-700 font-bold text-sm transition cursor-pointer shadow-sm";
+                    } else {
+                        btn.className = "demo-level-btn py-3 px-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 font-bold text-slate-700 text-sm transition cursor-pointer";
+                    }
                 }
             });
             checkDemographicComplete();
@@ -1091,7 +914,7 @@
         }
 
         async function submitFinalResults() {
-            showToast("正在將測驗結果直接寫入 Google 試算表...");
+            showToast("正在將測驗結果寫入 Google 試算表...");
             
             const submitData = {
                 id: 'sub_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
@@ -1107,7 +930,6 @@
                 stage2Answers: stage2Answers
             };
 
-            // Save to local fallback storage
             let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
             localRecords.push(submitData);
             localStorage.setItem('attachment_local_submissions', JSON.stringify(localRecords));
@@ -1127,305 +949,6 @@
 
             document.getElementById('stage2-quiz-card').classList.add('hidden');
             document.getElementById('stage2-result-card').classList.remove('hidden');
-        }
-
-        function openGoogleSheetFromCompletion() {
-            if(googleSheetsEditUrl) {
-                window.open(googleSheetsEditUrl, '_blank');
-            } else {
-                showToast("尚未設定 Google 試算表編輯網址，請至後台設定");
-            }
-        }
-
-        function saveWebhookUrl() {
-            const webhookInput = document.getElementById('sheets-webhook-url').value.trim();
-            const editInput = document.getElementById('sheets-edit-url').value.trim();
-            
-            googleSheetsWebhookUrl = webhookInput;
-            googleSheetsEditUrl = editInput;
-            
-            localStorage.setItem('attachment_webhook_url', webhookInput);
-            localStorage.setItem('attachment_sheet_url', editInput);
-            
-            showToast("Google 試算表串接網址已成功儲存！");
-        }
-
-        // Overhauled Admin Dashboard & Spreadsheet Fetching & Google Forms Style Analytics
-        function openAdminDashboard() {
-            document.getElementById('admin-modal').classList.remove('hidden');
-            setTimeout(() => {
-                document.getElementById('admin-modal').classList.remove('opacity-0', 'pointer-events-none');
-            }, 10);
-            
-            document.getElementById('sheets-webhook-url').value = googleSheetsWebhookUrl;
-            document.getElementById('sheets-edit-url').value = googleSheetsEditUrl;
-
-            fetchDataFromSpreadsheet();
-        }
-
-        function closeAdminDashboard() {
-            document.getElementById('admin-modal').classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                document.getElementById('admin-modal').classList.add('hidden');
-            }, 300);
-        }
-
-        function switchAdminTab(tabName) {
-            activeAdminTab = tabName;
-            
-            ['analytics', 'table', 'sync'].forEach(t => {
-                const btn = document.getElementById(`tab-btn-${t}`);
-                const content = document.getElementById(`admin-tab-content-${t}`);
-                
-                btn.classList.remove('border-indigo-600', 'text-indigo-600');
-                btn.classList.add('border-transparent', 'text-slate-500');
-                content.classList.add('hidden');
-            });
-
-            document.getElementById(`tab-btn-${tabName}`).classList.remove('border-transparent', 'text-slate-500');
-            document.getElementById(`tab-btn-${tabName}`).classList.add('border-indigo-600', 'text-indigo-600');
-            document.getElementById(`admin-tab-content-${tabName}`).classList.remove('hidden');
-        }
-
-        async function fetchDataFromSpreadsheet() {
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>正在從 Google 試算表抓取數據並計算...</div></td></tr>`;
-
-            let records = [];
-            try {
-                if(googleSheetsWebhookUrl) {
-                    const res = await fetch(googleSheetsWebhookUrl + '?action=getRecords');
-                    const data = await res.json();
-                    if(Array.isArray(data)) records = data;
-                }
-            } catch(e) {
-                console.log("Using local records fallback as spreadsheet endpoint wasn't reached directly:", e);
-            }
-
-            // Fallback to local storage records if spreadsheet fetched 0 or failed
-            if(records.length === 0) {
-                records = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
-            }
-
-            adminFetchedRecords = records.map((r, idx) => ({
-                id: r.id || ('record_' + idx + '_' + Date.now()),
-                ...r
-            }));
-
-            // Compute statistics & Google Forms style analysis
-            let counts = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
-            let anxiousCount = 0;
-            let nonAnxiousCount = 0;
-
-            adminFetchedRecords.forEach((row) => {
-                let dType = row.dominantType || '';
-                let internalKey = 'secure';
-                if(dType.includes('焦慮')) { internalKey = 'anxiety'; anxiousCount++; }
-                else if(dType.includes('安全')) { internalKey = 'secure'; nonAnxiousCount++; }
-                else if(dType.includes('逃避')) { internalKey = 'avoidance'; nonAnxiousCount++; }
-                else if(dType.includes('恐懼')) { internalKey = 'fearful'; nonAnxiousCount++; }
-                else { nonAnxiousCount++; }
-
-                if(counts[internalKey] !== undefined) counts[internalKey]++;
-            });
-
-            document.getElementById('admin-stat-total').innerText = `${adminFetchedRecords.length} 份`;
-            document.getElementById('admin-record-count').innerText = adminFetchedRecords.length;
-            document.getElementById('table-record-count').innerText = adminFetchedRecords.length;
-            document.getElementById('admin-stat-anxious').innerText = `${anxiousCount} 人`;
-            document.getElementById('admin-stat-nonanxious').innerText = `${nonAnxiousCount} 人`;
-
-            renderAdminTable();
-            renderGoogleFormsAnalytics(adminFetchedRecords, counts);
-            showToast("已成功從 Google 試算表抓取最新數據並完成統計！");
-        }
-
-        function promptDeleteRecord(recordId) {
-            pendingDeleteId = recordId;
-            const modal = document.getElementById('custom-confirm-modal');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            document.getElementById('confirm-yes-btn').onclick = () => executeDeleteRecord();
-        }
-
-        function closeConfirmModal() {
-            const modal = document.getElementById('custom-confirm-modal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            pendingDeleteId = null;
-        }
-
-        function executeDeleteRecord() {
-            if(!pendingDeleteId) return;
-            let localRecords = JSON.parse(localStorage.getItem('attachment_local_submissions') || '[]');
-            localRecords = localRecords.filter(r => r.id !== pendingDeleteId);
-            localStorage.setItem('attachment_local_submissions', JSON.stringify(localRecords));
-            
-            closeConfirmModal();
-            showToast("已成功刪除該筆資料");
-            fetchDataFromSpreadsheet();
-        }
-
-        function renderAdminTable() {
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = '';
-            
-            if(adminFetchedRecords.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400">尚無任何從試算表抓取到的受測紀錄</td></tr>`;
-                return;
-            }
-
-            adminFetchedRecords.slice().reverse().forEach((record) => {
-                const tr = document.createElement('tr');
-                const catBadge = record.stage2Category && record.stage2Category.includes('Anxious') ? 
-                    '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold text-xs">二類(焦慮)</span>' : 
-                    '<span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded font-bold text-xs">一類(非焦慮)</span>';
-                
-                const genderLevel = (record.gender || '未填') + ' / ' + (record.schoolLevel || '未填');
-
-                tr.innerHTML = `
-                    <td class="p-3.5 text-slate-500 whitespace-nowrap">${record.submittedAt || '剛剛'}</td>
-                    <td class="p-3.5 font-bold text-slate-800">${record.userName || '未命名'}</td>
-                    <td class="p-3.5 text-slate-500">${record.userEmail || '無'}</td>
-                    <td class="p-3.5 text-slate-600">${genderLevel}</td>
-                    <td class="p-3.5 font-semibold text-rose-500">${record.dominantType}</td>
-                    <td class="p-3.5">${catBadge}</td>
-                    <td class="p-3.5 text-center">
-                        <button onclick="promptDeleteRecord('${record.id}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition cursor-pointer">
-                            <i class="fa-solid fa-trash mr-1"></i> 刪除
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderGoogleFormsAnalytics(records, counts) {
-            const container = document.getElementById('analytics-container');
-            container.innerHTML = '';
-
-            if(records.length === 0) {
-                container.innerHTML = `<div class="p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm">目前試算表中尚無填答數據可供分析</div>`;
-                return;
-            }
-
-            const total = records.length;
-            const card1 = document.createElement('div');
-            card1.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
-            card1.innerHTML = `
-                <div class="border-b border-slate-100 pb-4">
-                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">GOOGLE FORMS STYLE ANALYSIS</span>
-                    <h3 class="text-xl font-bold text-slate-800 mt-1">第一階段：依附類型總體分佈分析</h3>
-                    <p class="text-xs text-slate-400">已從 Google 試算表抓取共計 ${total} 份受測數據</p>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
-                    <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
-                        <div class="text-xs font-bold text-emerald-800 mb-1">安全型 (Secure)</div>
-                        <div class="text-2xl font-black text-emerald-600">${counts.secure || 0} <span class="text-xs font-normal text-slate-500">(${Math.round(((counts.secure||0)/total)*100)}%)</span></div>
-                    </div>
-                    <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-100">
-                        <div class="text-xs font-bold text-amber-800 mb-1">焦慮型 (Anxious)</div>
-                        <div class="text-2xl font-black text-amber-600">${counts.anxiety || 0} <span class="text-xs font-normal text-slate-500">(${Math.round(((counts.anxiety||0)/total)*100)}%)</span></div>
-                    </div>
-                    <div class="bg-sky-50/70 p-4 rounded-2xl border border-sky-100">
-                        <div class="text-xs font-bold text-sky-800 mb-1">逃避型 (Avoidant)</div>
-                        <div class="text-2xl font-black text-sky-600">${counts.avoidance || 0} <span class="text-xs font-normal text-slate-500">(${Math.round(((counts.avoidance||0)/total)*100)}%)</span></div>
-                    </div>
-                    <div class="bg-purple-50/70 p-4 rounded-2xl border border-purple-100">
-                        <div class="text-xs font-bold text-purple-800 mb-1">恐懼矛盾型 (Fearful)</div>
-                        <div class="text-2xl font-black text-purple-600">${counts.fearful || 0} <span class="text-xs font-normal text-slate-500">(${Math.round(((counts.fearful||0)/total)*100)}%)</span></div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(card1);
-
-            // Demographic Breakdown
-            let genderCounts = { '男': 0, '女': 0, '其他': 0, '不願透露': 0 };
-            let levelCounts = { '國中': 0, '高中': 0 };
-            records.forEach(r => {
-                if(genderCounts[r.gender] !== undefined) genderCounts[r.gender]++;
-                if(levelCounts[r.schoolLevel] !== undefined) levelCounts[r.schoolLevel]++;
-            });
-
-            const cardDemo = document.createElement('div');
-            cardDemo.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
-            cardDemo.innerHTML = `
-                <div class="border-b border-slate-100 pb-4">
-                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">DEMOGRAPHICS ANALYSIS</span>
-                    <h3 class="text-xl font-bold text-slate-800 mt-1">基本資料統計分佈</h3>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
-                        <h4 class="font-bold text-slate-700 text-sm">性別分佈比例</h4>
-                        <div class="space-y-2 text-xs">
-                            ${Object.entries(genderCounts).map(([k, v]) => `
-                                <div>
-                                    <div class="flex justify-between font-bold text-slate-700 mb-1"><span>${k}</span><span>${v} 人 (${Math.round((v/total)*100)}%)</span></div>
-                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden"><div class="bg-indigo-500 h-2 rounded-full" style="width: ${total>0?(v/total)*100:0}%"></div></div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
-                        <h4 class="font-bold text-slate-700 text-sm">學制分佈比例</h4>
-                        <div class="space-y-2 text-xs">
-                            ${Object.entries(levelCounts).map(([k, v]) => `
-                                <div>
-                                    <div class="flex justify-between font-bold text-slate-700 mb-1"><span>${k}</span><span>${v} 人 (${Math.round((v/total)*100)}%)</span></div>
-                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden"><div class="bg-rose-400 h-2 rounded-full" style="width: ${total>0?(v/total)*100:0}%"></div></div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(cardDemo);
-
-            // Question-by-Question Google Forms style breakdown (16 questions)
-            questions.forEach((qObj, qIdx) => {
-                let optCounts = [0, 0, 0, 0, 0];
-                let totalAnswered = 0;
-
-                records.forEach(r => {
-                    if(Array.isArray(r.answers) && r.answers[qIdx] !== null && r.answers[qIdx] !== undefined) {
-                        let val = parseInt(r.answers[qIdx]);
-                        if(val >= 1 && val <= 5) {
-                            optCounts[val - 1]++;
-                            totalAnswered++;
-                        }
-                    }
-                });
-
-                const qCard = document.createElement('div');
-                qCard.className = 'bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4';
-                const optLabels = ['1 (非常不符合)', '2 (不符合)', '3 (普通)', '4 (符合)', '5 (非常符合)'];
-                
-                qCard.innerHTML = `
-                    <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                        <div>
-                            <span class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full font-bold text-xs">第 ${qIdx + 1} 題 (${qObj.name})</span>
-                            <h4 class="font-bold text-slate-800 text-base sm:text-lg mt-2">${qObj.text}</h4>
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400 shrink-0 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">已填答: ${totalAnswered} 份</span>
-                    </div>
-                    <div class="space-y-3 pt-2">
-                        ${optLabels.map((label, oIdx) => {
-                            let count = optCounts[oIdx];
-                            let pct = totalAnswered > 0 ? Math.round((count / totalAnswered) * 100) : 0;
-                            return `
-                                <div class="space-y-1">
-                                    <div class="flex justify-between text-xs font-semibold text-slate-600">
-                                        <span>${label}</span>
-                                        <span>${count} 票 (${pct}%)</span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200/60">
-                                        <div class="bg-indigo-500 h-3 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-                container.appendChild(qCard);
-            });
         }
     </script>
 </body>
