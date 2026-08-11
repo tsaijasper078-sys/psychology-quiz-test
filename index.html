@@ -119,7 +119,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <button id="admin-dashboard-btn" onclick="openAdminDashboard()" class="hidden text-xs text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-chart-line"></i> 後台看板
+                            <i class="fa-solid fa-chart-line"></i> 後台看板 (從試算表抓取)
                         </button>
                         <button onclick="handleSignOut()" class="text-xs text-slate-500 hover:text-rose-500 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:border-rose-200 bg-white transition cursor-pointer">
                             <i class="fa-solid fa-right-from-bracket mr-1"></i> 切換帳號
@@ -338,32 +338,28 @@
             
             <p class="text-xs font-bold tracking-widest text-emerald-600 uppercase mb-1">SURVEY COMPLETED</p>
             <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-3">
-                問卷數據已成功送出！
+                問卷數據已成功送出並同步至 Google 試算表！
             </h2>
             <p class="text-sm font-medium text-slate-500 mb-6 max-w-md mx-auto">
-                非常感謝您撥冗協助我們完成本次專題研究的數據蒐集 ✨
+                非常感謝您撥冗協助我們完成本次專題研究的數據蒐集 ✨ 系統已自動幫您開啟 Google 試算表。
             </p>
 
             <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-left space-y-3 mb-8 max-w-lg mx-auto text-xs sm:text-sm text-slate-600 leading-relaxed">
                 <div class="flex items-start gap-2.5">
-                    <i class="fa-solid fa-shield-halved text-emerald-500 text-base mt-0.5"></i>
+                    <i class="fa-solid fa-file-excel text-emerald-600 text-base mt-0.5"></i>
                     <div>
-                        <strong class="text-slate-800 block mb-0.5">學術專題數據保密承諾：</strong>
-                        本問卷所填寫之所有數據與回答內容，將嚴格僅用於本次學術專題分析與論文報告撰寫，絕不作任何商業用途，亦不會對外公開您的個人隱私資訊，請您放心。
-                    </div>
-                </div>
-                <div class="flex items-start gap-2.5 pt-2 border-t border-slate-200/60">
-                    <i class="fa-solid fa-database text-indigo-500 text-base mt-0.5"></i>
-                    <div>
-                        <strong class="text-slate-800 block mb-0.5">數據記錄狀態：</strong>
-                        您的問卷資料已安全寫入專題研究資料庫中，並已連結您的驗證標記以防止重複計數。
+                        <strong class="text-slate-800 block mb-0.5">Google 試算表即時記錄：</strong>
+                        您的作答結果已直接寫入您專屬的 Google 試算表中，後台看板隨時讀取該試算表進行統計。
                     </div>
                 </div>
             </div>
 
-            <div class="flex justify-center">
-                <button onclick="location.reload()" class="px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-full shadow-md transition text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-house"></i> 完成並返回首頁
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="openGoogleSheetFromCompletion()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-full shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-file-excel"></i> 前往 Google 試算表查看
+                </button>
+                <button onclick="location.reload()" class="px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-full shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-house"></i> 返回首頁
                 </button>
             </div>
         </div>
@@ -455,7 +451,7 @@
                         <i class="fa-solid fa-chart-line text-white"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-base sm:text-lg">專題研究後台分析看板</h3>
+                        <h3 class="font-bold text-base sm:text-lg">專題研究後台分析看板 (資料來自 Google 試算表)</h3>
                         <p class="text-xs text-slate-400">明道中學應用英語科專題研究團隊專用管理介面</p>
                     </div>
                 </div>
@@ -490,12 +486,12 @@
                         <i class="fa-solid fa-list-check"></i> 詳細受測紀錄 (<span id="admin-record-count">0</span>)
                     </button>
                     <button id="tab-btn-sync" onclick="switchAdminTab('sync')" class="px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-file-excel text-emerald-600"></i> 自動同步設定
+                        <i class="fa-solid fa-file-excel text-emerald-600"></i> 試算表串接設定
                     </button>
                 </div>
                 <div class="flex items-center gap-2 pb-2">
-                    <button onclick="fetchAdminData()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-arrows-rotate"></i> 重新整理
+                    <button onclick="fetchAdminData()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate"></i> 從試算表重新抓取數據
                     </button>
                 </div>
             </div>
@@ -507,7 +503,7 @@
                     <div id="analytics-container" class="space-y-6">
                         <div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm">
                             <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-indigo-500"></i>
-                            <div>正在計算每一題選項的百分比與統計圖表...</div>
+                            <div>正在從 Google 試算表計算統計圖表...</div>
                         </div>
                     </div>
                 </div>
@@ -518,18 +514,17 @@
                         <table class="w-full text-left text-xs text-slate-700">
                             <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
                                 <tr>
-                                    <th class="p-3">姓名 / 標記</th>
-                                    <th class="p-3">Email / 代碼</th>
-                                    <th class="p-3">性別 / 學制</th>
-                                    <th class="p-3">第一階段依附風格</th>
-                                    <th class="p-3">第二階段分類</th>
                                     <th class="p-3">提交時間</th>
-                                    <th class="p-3 text-center">操作</th>
+                                    <th class="p-3">受測者姓名</th>
+                                    <th class="p-3">Email / 帳號</th>
+                                    <th class="p-3">第一階段依附類型</th>
+                                    <th class="p-3">第二階段分類</th>
+                                    <th class="p-3">第二階段回答細項</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-table-body" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="7" class="p-8 text-center text-slate-400">
+                                    <td colspan="6" class="p-8 text-center text-slate-400">
                                         <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
                                         <div>資料讀取中...</div>
                                     </td>
@@ -547,14 +542,19 @@
                                 <i class="fa-solid fa-link"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-800 text-base">Google 試算表 (Google Sheets) 即時自動同步 Webhook 串接</h4>
-                                <p class="text-xs text-slate-500">設定後，每次有受測者提交問卷，系統將自動把數據即時推送到您的 Google 試算表中！</p>
+                                <h4 class="font-bold text-slate-800 text-base">Google 試算表與後台串接設定</h4>
+                                <p class="text-xs text-slate-500">填入您的 Google 試算表網址與 Apps Script 網頁應用程式網址，實現「送出後自動開表單」及「後台從試算表抓數據」！</p>
                             </div>
                         </div>
 
                         <div class="space-y-4 text-xs text-slate-600">
                             <div>
-                                <label class="block font-bold text-slate-700 mb-1">Google Apps Script 網頁應用程式網址 (Web App URL)</label>
+                                <label class="block font-bold text-slate-700 mb-1">1. Google 試算表編輯網址 (Google Sheet URL - 供送出後自動跳轉用)</label>
+                                <input type="text" id="sheets-edit-url" placeholder="https://docs.google.com/spreadsheets/d/1BxiM.../edit" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">2. Google Apps Script 網頁應用程式網址 (Web App URL - 供送出寫入及後台抓取數據用)</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="flex-grow px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:border-indigo-500">
                                     <button onclick="saveWebhookUrl()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition cursor-pointer shrink-0">
@@ -565,13 +565,9 @@
 
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                                 <h5 class="font-bold text-slate-800 flex items-center gap-2 text-xs sm:text-sm">
-                                    <i class="fa-solid fa-list-ol text-indigo-500"></i> 超簡單 3 步驟設定 Google 試算表自動同步：
+                                    <i class="fa-solid fa-list-ol text-indigo-500"></i> Apps Script 完整程式碼（支援寫入與後台讀取）：
                                 </h5>
-                                <ol class="list-decimal list-inside space-y-2 leading-relaxed text-slate-600">
-                                    <li>開啟您的 <strong>Google 試算表</strong>，點選上方選單的 <strong>「擴充功能」 ➔ 「Apps Script」</strong>。</li>
-                                    <li>清空裡面的代碼，貼上右側的專用代碼後點擊「儲存」。</li>
-                                    <li>點選右上角 <strong>「部署」 ➔ 「新增部署」</strong> ➔ 類型選擇「網頁應用程式」，將「誰可以存取」設為 <strong>「所有人 (Anyone)」</strong> 點擊部署，並複製產生的網址貼至上方框中即可！</li>
-                                </ol>
+                                <p class="text-slate-500">請確保您的 Apps Script 包含 <strong>doPost(e)</strong> 與 <strong>doGet(e)</strong>，並將「誰可以存取」設為 <strong>所有人 (Anyone)</strong>。</p>
                             </div>
 
                             <div class="bg-slate-900 text-slate-200 p-4 rounded-xl font-mono text-[11px] relative overflow-hidden">
@@ -602,6 +598,30 @@ function doPost(e) {
   ]);
   
   return ContentService.createTextOutput(JSON.stringify({"result": "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var rows = sheet.getDataRange().getValues();
+  if (rows.length === 0) {
+    return ContentService.createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var headers = rows.shift(); // remove header
+  var data = rows.map(function(row) {
+    return {
+      submittedAt: row[0] || "",
+      userName: row[1] || "未命名",
+      userEmail: row[2] || "無",
+      dominantType: row[3] || "secure",
+      stage2Category: row[4] || "",
+      stage2Answers: row[5] ? row[5].split(", ").map(function(item){ return item.indexOf(":") !== -1 ? item.split(":")[1] : item; }) : []
+    };
+  });
+  
+  return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }</pre>
                             </div>
@@ -641,6 +661,7 @@ function doPost(e) {
         let adminFetchedRecords = [];
         let activeAdminTab = 'analytics';
         let googleSheetsWebhookUrl = localStorage.getItem('attachment_webhook_url') || '';
+        let googleSheetsEditUrl = localStorage.getItem('attachment_sheet_url') || '';
         let adminCharts = [];
 
         // Stage 1 Questions dataset (16 questions, 4 dimensions)
@@ -747,6 +768,12 @@ function doPost(e) {
                     });
                 }
             }, 500);
+
+            // Load saved URLs
+            const sWebhook = localStorage.getItem('attachment_webhook_url');
+            const sEdit = localStorage.getItem('attachment_sheet_url');
+            if(sWebhook) googleSheetsWebhookUrl = sWebhook;
+            if(sEdit) googleSheetsEditUrl = sEdit;
         });
 
         function handleGoogleLogin() {
@@ -772,7 +799,7 @@ function doPost(e) {
                 document.getElementById('admin-dashboard-btn').classList.remove('hidden');
                 updateAuthUI();
                 openAdminDashboard();
-                showToast("管理員登入成功 (可無限次測驗)");
+                showToast("管理員登入成功 (後台已連結 Google 試算表)");
                 return;
             }
 
@@ -786,30 +813,7 @@ function doPost(e) {
             mockUserProfile.name = name;
             closeGoogleModal();
             updateAuthUI();
-            
-            if(window.firebaseDb) {
-                try {
-                    const q = window.collection(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses');
-                    const snapshot = await window.getDocs(q);
-                    let hasSubmitted = false;
-                    snapshot.forEach(doc => {
-                        if(doc.data().userEmail === emailOrPwd) {
-                            hasSubmitted = true;
-                        }
-                    });
-
-                    if(hasSubmitted) {
-                        document.getElementById('already-completed-box').classList.remove('hidden');
-                        document.getElementById('start-btn').classList.add('opacity-50', 'cursor-not-allowed');
-                        document.getElementById('start-btn').disabled = true;
-                        document.getElementById('start-btn').innerHTML = '已完成過問卷 <i class="fa-solid fa-check ml-2"></i>';
-                    } else {
-                        document.getElementById('already-completed-box').classList.add('hidden');
-                    }
-                } catch(err) {
-                    console.log("Check submission error", err);
-                }
-            }
+            document.getElementById('already-completed-box').classList.add('hidden');
         }
 
         function updateAuthUI() {
@@ -821,12 +825,10 @@ function doPost(e) {
             document.getElementById('user-avatar-placeholder').innerText = initialChar;
             document.getElementById('user-name').innerText = mockUserProfile.name || mockUserProfile.email;
 
-            if(isAdmin || document.getElementById('already-completed-box').classList.contains('hidden')) {
-                const startBtn = document.getElementById('start-btn');
-                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                startBtn.disabled = false;
-                startBtn.innerHTML = isAdmin ? '開始測驗 (管理員無限次) <i class="fa-solid fa-arrow-right ml-2"></i>' : '開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>';
-            }
+            const startBtn = document.getElementById('start-btn');
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            startBtn.disabled = false;
+            startBtn.innerHTML = isAdmin ? '開始測驗 (管理員無限次) <i class="fa-solid fa-arrow-right ml-2"></i>' : '開始測驗 <i class="fa-solid fa-arrow-right ml-2"></i>';
         }
 
         function handleSignOut() {
@@ -1168,29 +1170,19 @@ function doPost(e) {
         }
 
         async function submitFinalResults() {
-            showToast("正在加密送出數據...");
+            showToast("正在將資料寫入 Google 試算表...");
             
             const submitData = {
                 userEmail: mockUserProfile.email,
                 userName: mockUserProfile.name,
                 gender: demographicData.gender,
                 schoolLevel: demographicData.level,
-                submittedAt: new Date().toISOString(),
-                dominantType: dominantType,
+                submittedAt: new Date().toLocaleString(),
+                dominantType: attachmentTypeData[dominantType]?.name || dominantType,
                 scores: calculatedScores,
                 stage2Category: dominantType === 'anxiety' ? 'Category 2 (Anxious)' : 'Category 1 (Non-Anxious)',
                 stage2Answers: stage2Answers
             };
-
-            if(window.firebaseDb && currentUser) {
-                try {
-                    const colRef = window.collection(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses');
-                    const docRef = await window.addDoc(colRef, submitData);
-                    submitData.id = docRef.id;
-                } catch(e) {
-                    console.error("Firebase save error", e);
-                }
-            }
 
             if(googleSheetsWebhookUrl) {
                 try {
@@ -1208,8 +1200,17 @@ function doPost(e) {
             document.getElementById('stage2-quiz-card').classList.add('hidden');
             document.getElementById('stage2-result-card').classList.remove('hidden');
             
-            if(!isAdmin) {
-                document.getElementById('already-completed-box').classList.remove('hidden');
+            // Automatically open Google Sheet if edit URL is provided
+            if(googleSheetsEditUrl) {
+                window.open(googleSheetsEditUrl, '_blank');
+            }
+        }
+
+        function openGoogleSheetFromCompletion() {
+            if(googleSheetsEditUrl) {
+                window.open(googleSheetsEditUrl, '_blank');
+            } else {
+                showToast("尚未設定 Google 試算表編輯網址，請至後台填寫");
             }
         }
 
@@ -1226,13 +1227,11 @@ function doPost(e) {
             setTimeout(() => {
                 document.getElementById('admin-modal').classList.remove('opacity-0', 'pointer-events-none');
             }, 10);
-            fetchAdminData();
             
-            const storedUrl = localStorage.getItem('attachment_webhook_url');
-            if(storedUrl) {
-                document.getElementById('sheets-webhook-url').value = storedUrl;
-                googleSheetsWebhookUrl = storedUrl;
-            }
+            document.getElementById('sheets-webhook-url').value = googleSheetsWebhookUrl;
+            document.getElementById('sheets-edit-url').value = googleSheetsEditUrl;
+
+            fetchAdminData();
         }
 
         function closeAdminDashboard() {
@@ -1260,44 +1259,59 @@ function doPost(e) {
         }
 
         async function fetchAdminData() {
-            if(!window.firebaseDb) {
-                showToast("Firebase 連線尚未建立");
+            if(!googleSheetsWebhookUrl) {
+                showToast("尚未設定 Google Apps Script 網址，請至「試算表串接設定」填寫");
+                switchAdminTab('sync');
                 return;
             }
             
             const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>資料讀取中...</div></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>正在從 Google 試算表抓取數據中...</div></td></tr>`;
 
             try {
-                const colRef = window.collection(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses');
-                const snapshot = await window.getDocs(colRef);
+                const response = await fetch(googleSheetsWebhookUrl);
+                const data = await response.json();
                 
                 adminFetchedRecords = [];
-                let typeCounts = { anxious: 0, nonanxious: 0 };
+                let counts = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
+                let anxiousCount = 0;
+                let nonAnxiousCount = 0;
 
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    data.docId = docSnap.id;
-                    adminFetchedRecords.push(data);
-                    
-                    if(data.dominantType === 'anxiety') {
-                        typeCounts.anxious++;
-                    } else {
-                        typeCounts.nonanxious++;
-                    }
-                });
+                if(Array.isArray(data)) {
+                    data.forEach((row, idx) => {
+                        let dType = row.dominantType || '';
+                        let internalKey = 'secure';
+                        if(dType.includes('焦慮')) { internalKey = 'anxiety'; anxiousCount++; }
+                        else if(dType.includes('安全')) { internalKey = 'secure'; nonAnxiousCount++; }
+                        else if(dType.includes('逃避')) { internalKey = 'avoidance'; nonAnxiousCount++; }
+                        else if(dType.includes('恐懼')) { internalKey = 'fearful'; nonAnxiousCount++; }
+                        else { nonAnxiousCount++; }
+
+                        if(counts[internalKey] !== undefined) counts[internalKey]++;
+
+                        adminFetchedRecords.push({
+                            submittedAt: row.submittedAt || '',
+                            userName: row.userName || '未命名',
+                            userEmail: row.userEmail || '無',
+                            dominantType: dType,
+                            internalKey: internalKey,
+                            stage2Category: row.stage2Category || '',
+                            stage2Answers: row.stage2Answers || []
+                        });
+                    });
+                }
 
                 document.getElementById('admin-stat-total').innerText = `${adminFetchedRecords.length} 份`;
                 document.getElementById('admin-record-count').innerText = adminFetchedRecords.length;
-                document.getElementById('admin-stat-anxious').innerText = `${typeCounts.anxious} 人`;
-                document.getElementById('admin-stat-nonanxious').innerText = `${typeCounts.nonanxious} 人`;
+                document.getElementById('admin-stat-anxious').innerText = `${anxiousCount} 人`;
+                document.getElementById('admin-stat-nonanxious').innerText = `${nonAnxiousCount} 人`;
 
                 renderAdminTable();
-                renderAnalytics();
+                renderAnalytics(counts);
 
             } catch(e) {
                 console.error(e);
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-500">無法讀取資料，請確認權限或連線狀態</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-500">無法從試算表讀取資料，請確認 Apps Script 是否支援 doGet(e) 且已重新部署為「所有人」存取</td></tr>`;
             }
         }
 
@@ -1306,53 +1320,31 @@ function doPost(e) {
             tbody.innerHTML = '';
             
             if(adminFetchedRecords.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">尚無問卷資料</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">試算表中尚無問卷資料</td></tr>`;
                 return;
             }
 
-            adminFetchedRecords.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt)).forEach(record => {
+            adminFetchedRecords.slice().reverse().forEach(record => {
                 const tr = document.createElement('tr');
+                const catBadge = record.stage2Category && record.stage2Category.includes('Anxious') ? 
+                    '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold">二類(焦慮)</span>' : 
+                    '<span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded font-bold">一類(非焦慮)</span>';
                 
-                const typeName = attachmentTypeData[record.dominantType]?.name || record.dominantType;
-                const catName = record.stage2Category === 'Category 2 (Anxious)' ? '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold">二類(焦慮)</span>' : '<span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded font-bold">一類(非焦慮)</span>';
-                const demoInfo = `${record.gender || '未填'} / ${record.schoolLevel || '未填'}`;
-                
+                const s2Text = Array.isArray(record.stage2Answers) ? record.stage2Answers.join(", ") : record.stage2Answers;
+
                 tr.innerHTML = `
-                    <td class="p-3 font-medium text-slate-800">${record.userName || '未知'}</td>
+                    <td class="p-3 text-slate-500">${record.submittedAt}</td>
+                    <td class="p-3 font-medium text-slate-800">${record.userName}</td>
                     <td class="p-3">${record.userEmail}</td>
-                    <td class="p-3">${demoInfo}</td>
-                    <td class="p-3">${typeName}</td>
-                    <td class="p-3">${catName}</td>
-                    <td class="p-3 text-slate-500">${new Date(record.submittedAt).toLocaleString()}</td>
-                    <td class="p-3 text-center">
-                        <button onclick="deleteRecord('${record.docId}')" class="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-lg transition text-xs cursor-pointer" title="刪除此筆記錄">
-                            <i class="fa-solid fa-trash-can"></i> 刪除
-                        </button>
-                    </td>
+                    <td class="p-3 font-semibold text-rose-500">${record.dominantType}</td>
+                    <td class="p-3">${catBadge}</td>
+                    <td class="p-3 text-slate-500 max-w-xs truncate" title="${s2Text}">${s2Text}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        async function deleteRecord(docId) {
-            if(!docId) {
-                showToast("無效的記錄 ID");
-                return;
-            }
-            if(!confirm("確定要刪除這筆問卷記錄嗎？")) return;
-
-            try {
-                const docRef = window.doc(window.firebaseDb, 'artifacts', window.appId, 'public', 'data', 'responses', docId);
-                await window.deleteDoc(docRef);
-                showToast("記錄已成功刪除");
-                fetchAdminData();
-            } catch(e) {
-                console.error("Delete error", e);
-                showToast("刪除失敗，請檢查權限");
-            }
-        }
-
-        function renderAnalytics() {
+        function renderAnalytics(counts) {
             const container = document.getElementById('analytics-container');
             container.innerHTML = '';
 
@@ -1362,21 +1354,16 @@ function doPost(e) {
             }
 
             if(adminFetchedRecords.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm">目前尚無足夠資料以產生統計圖表</div>`;
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm">目前試算表中尚無足夠資料以產生統計圖表</div>`;
                 return;
             }
 
-            // 1. Attachment Style Distribution Bar Chart
-            let counts = { secure: 0, anxiety: 0, avoidance: 0, fearful: 0 };
-            adminFetchedRecords.forEach(r => {
-                if(counts[r.dominantType] !== undefined) counts[r.dominantType]++;
-            });
-
+            // 1. Bar Chart
             const card1 = document.createElement('div');
             card1.className = 'bg-white p-6 rounded-2xl border border-slate-200 shadow-sm';
             card1.innerHTML = `
                 <h4 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-bar text-indigo-500"></i> 第一階段依附類型分佈統計
+                    <i class="fa-solid fa-chart-bar text-indigo-500"></i> 第一階段依附類型分佈統計 (來自 Google 試算表)
                 </h4>
                 <div class="relative w-full h-64 flex items-center justify-center">
                     <canvas id="adminChartStyle"></canvas>
@@ -1391,7 +1378,7 @@ function doPost(e) {
                     labels: ['安全型', '焦慮型', '逃避型', '恐懼矛盾型'],
                     datasets: [{
                         label: '人數',
-                        data: [counts.secure, counts.anxiety, counts.avoidance, counts.fearful],
+                        data: [counts.secure || 0, counts.anxiety || 0, counts.avoidance || 0, counts.fearful || 0],
                         backgroundColor: ['#10b981', '#f59e0b', '#0ea5e9', '#8b5cf6'],
                         borderRadius: 8
                     }]
@@ -1407,129 +1394,19 @@ function doPost(e) {
                 }
             });
             adminCharts.push(chart1);
-
-            // 2. Stage 2 Analysis Header & Breakdown by Category
-            const s2Header = document.createElement('div');
-            s2Header.className = 'pt-4 border-t border-slate-200';
-            s2Header.innerHTML = `
-                <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-square-poll-vertical text-indigo-600"></i> 第二階段詳細選項統計分析 (一類與二類)
-                </h3>
-                <p class="text-xs text-slate-500 mb-4">以下自動統計所有受測者在第二階段各題目的選項分佈百分比。</p>
-            `;
-            container.appendChild(s2Header);
-
-            // Filter records by category for Stage 2
-            const cat1Records = adminFetchedRecords.filter(r => r.stage2Category === 'Category 1 (Non-Anxious)' && Array.isArray(r.stage2Answers));
-            const cat2Records = adminFetchedRecords.filter(r => r.stage2Category === 'Category 2 (Anxious)' && Array.isArray(r.stage2Answers));
-
-            // Render Category 1 Questions Analytics
-            if(cat1Records.length > 0) {
-                const cat1Wrapper = document.createElement('div');
-                cat1Wrapper.className = 'space-y-4';
-                cat1Wrapper.innerHTML = `<h4 class="font-bold text-indigo-700 text-sm bg-indigo-50 p-3 rounded-xl border border-indigo-100"><i class="fa-solid fa-users mr-1"></i> 第一類 (非焦慮型) 同學之第二階段回答統計 (${cat1Records.length} 人)</h4>`;
-                
-                stage2Category1.forEach((qObj, qIdx) => {
-                    const optionCounts = {};
-                    qObj.options.forEach(opt => optionCounts[opt] = 0);
-                    
-                    cat1Records.forEach(rec => {
-                        const ans = rec.stage2Answers[qIdx];
-                        if(ans && optionCounts[ans] !== undefined) {
-                            optionCounts[ans]++;
-                        }
-                    });
-
-                    const qCard = document.createElement('div');
-                    qCard.className = 'bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3';
-                    
-                    let barsHTML = '';
-                    const totalAns = cat1Records.length;
-                    qObj.options.forEach(opt => {
-                        const count = optionCounts[opt];
-                        const pct = totalAns > 0 ? Math.round((count / totalAns) * 100) : 0;
-                        barsHTML += `
-                            <div class="space-y-1">
-                                <div class="flex justify-between text-xs font-medium text-slate-600">
-                                    <span>${opt}</span>
-                                    <span class="font-bold text-slate-800">${count} 人 (${pct}%)</span>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    qCard.innerHTML = `
-                        <div class="font-bold text-slate-800 text-xs sm:text-sm">Q${qIdx + 1}. ${qObj.text}</div>
-                        <div class="space-y-2 pt-2">${barsHTML}</div>
-                    `;
-                    cat1Wrapper.appendChild(qCard);
-                });
-                container.appendChild(cat1Wrapper);
-            }
-
-            // Render Category 2 Questions Analytics
-            if(cat2Records.length > 0) {
-                const cat2Wrapper = document.createElement('div');
-                cat2Wrapper.className = 'space-y-4 mt-6';
-                cat2Wrapper.innerHTML = `<h4 class="font-bold text-amber-700 text-sm bg-amber-50 p-3 rounded-xl border border-amber-100"><i class="fa-solid fa-heart-pulse mr-1"></i> 第二類 (焦慮型) 同學之第二階段回答統計 (${cat2Records.length} 人)</h4>`;
-                
-                stage2Category2.forEach((qObj, qIdx) => {
-                    const optionCounts = {};
-                    qObj.options.forEach(opt => optionCounts[opt] = 0);
-                    
-                    cat2Records.forEach(rec => {
-                        const ans = rec.stage2Answers[qIdx];
-                        if(ans && optionCounts[ans] !== undefined) {
-                            optionCounts[ans]++;
-                        }
-                    });
-
-                    const qCard = document.createElement('div');
-                    qCard.className = 'bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3';
-                    
-                    let barsHTML = '';
-                    const totalAns = cat2Records.length;
-                    qObj.options.forEach(opt => {
-                        const count = optionCounts[opt];
-                        const pct = totalAns > 0 ? Math.round((count / totalAns) * 100) : 0;
-                        barsHTML += `
-                            <div class="space-y-1">
-                                <div class="flex justify-between text-xs font-medium text-slate-600">
-                                    <span>${opt}</span>
-                                    <span class="font-bold text-slate-800">${count} 人 (${pct}%)</span>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-amber-50 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    qCard.innerHTML = `
-                        <div class="font-bold text-slate-800 text-xs sm:text-sm">Q${qIdx + 1}. ${qObj.text}</div>
-                        <div class="space-y-2 pt-2">${barsHTML}</div>
-                    `;
-                    cat2Wrapper.appendChild(qCard);
-                });
-                container.appendChild(cat2Wrapper);
-            }
-
-            if(cat1Records.length === 0 && cat2Records.length === 0) {
-                const noS2 = document.createElement('div');
-                noS2.className = 'p-6 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm text-xs';
-                noS2.innerText = "目前尚無受測者完成第二階段問卷。";
-                container.appendChild(noS2);
-            }
         }
 
         function saveWebhookUrl() {
-            const url = document.getElementById('sheets-webhook-url').value.trim();
-            googleSheetsWebhookUrl = url;
-            localStorage.setItem('attachment_webhook_url', url);
-            showToast("Google 試算表同步網址已儲存！");
+            const webhookUrl = document.getElementById('sheets-webhook-url').value.trim();
+            const editUrl = document.getElementById('sheets-edit-url').value.trim();
+            
+            googleSheetsWebhookUrl = webhookUrl;
+            googleSheetsEditUrl = editUrl;
+            
+            localStorage.setItem('attachment_webhook_url', webhookUrl);
+            localStorage.setItem('attachment_sheet_url', editUrl);
+            
+            showToast("Google 試算表串接設定已成功儲存！");
         }
 
         function copyAppsScriptCode() {
