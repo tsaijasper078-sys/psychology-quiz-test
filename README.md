@@ -1,1 +1,1 @@
-# psychology-quiz-test
+# psychology-quiz
